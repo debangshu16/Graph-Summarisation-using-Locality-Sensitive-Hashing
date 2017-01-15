@@ -399,7 +399,7 @@ void lsh(int **a,int *elements,int n1,graph *g)
 
 	 
 	
-	int cntb=0;
+	int cntb=0,temp1;
 	for(i=0;i<10;i++)
 	{
 		ptr=bucket->arr[i].head;
@@ -446,8 +446,8 @@ void lsh(int **a,int *elements,int n1,graph *g)
 			while(ptr!=NULL)
 			{
 				ptr2=ptr;				
-				temp=g->arr[ptr2->vertex].group;
-	
+				temp1=g->arr[ptr2->vertex].group;
+				temp=temp1;
 				while(g->arr[ptr2->vertex].group==temp)
 				{
 					ptr2=ptr2->next;
@@ -460,7 +460,7 @@ void lsh(int **a,int *elements,int n1,graph *g)
 					ptr=ptr2;
 				}
 			
-				merge(bucket->arr[i].head,bucket->arr[temp-65].head);
+				merge(bucket->arr[temp1-65].head,bucket->arr[temp-65].head);
 				ptr=ptr->next;
 			}
 		}
@@ -558,7 +558,7 @@ struct node * merge(struct node *head1,struct node *head2)
         	t2 = t2->next;
     	}
  
-        return result;
+        head1=result;
 }
 void push (struct node** head_ref, int new_data)
 {
