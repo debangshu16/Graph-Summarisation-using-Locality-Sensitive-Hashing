@@ -134,15 +134,17 @@ void print(graph *g)
 int main()
 {
 	long int v=4039,e=88234;
-
+	//int v=63,e=318;
 	
 	int i,src,dest,t;
 	
 
 	FILE *fp;
 	fp=fopen("FB.txt","r");
-	//scanf("%d%d",&v,&e);
-	
+
+	//fp=fopen("dolph.txt","r");
+	 
+	 
 	double tmp,x;
 	graph *g=creategraph(v);
 	
@@ -171,14 +173,23 @@ int main()
 		//printf("%d\n",g->arr[i].bin_no);
 	}
 
+	int max=g->arr[0].bin_no;
+	for(i=0;i<v;i++)
+	{
+		if(g->arr[i].bin_no>max)
+		max=g->arr[i].bin_no;
+	}
+
+	max=max+1;
+
 	struct bin *bin=(struct bin *)malloc(sizeof(struct bin));
-	bin->a=(struct binlist *)malloc(sizeof(struct binlist)*70);
+	bin->a=(struct binlist *)malloc(sizeof(struct binlist)*max);
 
 	struct node *q;
 		
 	int cnt;
 	int j=0;	
-	while(j<70)
+	while(j<max)
 	{
 		cnt=0;		
 		for(i=0;i<v;i++)
@@ -223,7 +234,7 @@ int main()
 	visited[i]=0;
 
 	struct node *ptr,*nptr;
-	for(i=60;i<70;i++)
+	for(i=max-10;i<max;i++)
 	{
 		//n1+=bin->a[i].nn;
 		ptr=bin->a[i].head;
