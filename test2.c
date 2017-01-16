@@ -19,7 +19,8 @@ int h(int *vec,int x,int nc)
 	return s;
 } 
 
-#define h1(x) (2*x+1) 
+#define h1(x) (2*x+1)
+#define h2(x) (x+1)%100 
 #define g1(x) x%10
 
 struct node *merge(struct node *,struct node *);
@@ -312,9 +313,9 @@ int main()
 void lsh(int **a,int *elements,int n1,graph *g)
 {
 
-	int i,j,r=n1,c=n1,k,temp;
+	int i,j,r=n1,c=n1,k,temp1,temp,cntb=0;
 	
-	int nh=5,nc=2;
+	int nh=3,nc=2;
 	int M[nh][n1];
 
 	struct hash hash[nh];
@@ -333,20 +334,12 @@ void lsh(int **a,int *elements,int n1,graph *g)
 		}
 	}
 	 
-	int flag[10][n1];
-
-	
 	 
-	for(j=0;j<10;j++)
-	{
-		for(i=0;i<n1;i++)
-		flag[j][i]=0;	
-	}
 	
 	for(i=0;i<nh;i++)
 	{
 		for(j=0;j<c;j++)
-			M[i][j]=9999;
+			M[i][j]=99999;
 	}
 
 	 
@@ -361,10 +354,18 @@ void lsh(int **a,int *elements,int n1,graph *g)
 				for(k=0;k<nh;k++)
 				{
 					if(h(hash[k].x,i,nc)<M[k][j])
-						M[k][j]=h(hash[k].x,i,nc);					
-				//if(h1(i)<M[0][j])
-				//M[0][j]=h1(i);
-					 					 
+						M[k][j]=h(hash[k].x,i,nc);
+
+					
+					/*if(k==0){	
+					if(h1(i)<M[0][j])
+					M[0][j]=h1(i);}
+					if(k==1)
+					{
+						if(h2(i)<M[1][j])
+							M[1][j]=h2(i);
+					}
+					*/					 
 				}
 			}
 		}
@@ -377,29 +378,22 @@ void lsh(int **a,int *elements,int n1,graph *g)
 	struct node *ptr;
 	bucket->arr=(struct bucketlist *)malloc(sizeof(struct bucketlist)*10);
 
-	int t;j=0;
-	//for(j=0;j<nh;j++)
-	//{
-		for(i=0;i<c;i++)
-		{
-			t=g1(M[j][i]);
-			
-			//if(flag[t][i]==0)
-			//{
-				ptr=newnode1(elements[i]);
+	struct bucket *bucket2;
+	int t;
 
-				ptr->next=bucket->arr[t].head;
-				bucket->arr[t].head=ptr;
-				
-				flag[t][i]=1;
-				
-			//}
-		}
-	//}
+	for(i=0;i<c;i++)
+	{
+		t=g1(M[0][i]);
+		ptr=newnode1(elements[i]);
+		ptr->next=bucket->arr[t].head;
+		bucket->arr[t].head=ptr;
+			
+	}
+	
 
 	 
 	
-	int cntb=0,temp1;
+	 
 	for(i=0;i<10;i++)
 	{
 		ptr=bucket->arr[i].head;
@@ -420,7 +414,7 @@ void lsh(int **a,int *elements,int n1,graph *g)
 	
 	while(j<nh){
 	
-	struct bucket *bucket2=(struct bucket *)malloc(sizeof(struct bucket));
+	bucket2=(struct bucket *)malloc(sizeof(struct bucket));
 	 
 	bucket2->arr=(struct bucketlist *)malloc(sizeof(struct bucketlist)*10);
 
@@ -445,6 +439,7 @@ void lsh(int **a,int *elements,int n1,graph *g)
 		{
 			while(ptr!=NULL)
 			{
+								
 				ptr2=ptr;				
 				temp1=g->arr[ptr2->vertex].group;
 				temp=temp1;
@@ -459,14 +454,59 @@ void lsh(int **a,int *elements,int n1,graph *g)
 					temp=g->arr[ptr2->vertex].group;
 					ptr=ptr2;
 				}
-			
-				merge(bucket->arr[temp1-65].head,bucket->arr[temp-65].head);
+				if(temp1!=temp)
+				{
+					bucket->arr[temp1-65].head=merge(bucket->arr[temp1-65].head,bucket->arr[temp-65].head);
+					bucket->arr[temp-65].head=NULL;
+				}
 				ptr=ptr->next;
 			}
+			
+		}
+		
+	}
+	/*int distribution1[10][7];
+	int cnt=0;
+
+	
+
+	for(i=0;i<10;i++)
+	{
+		for(j=0;j<7;j++)
+			distribution1[i][j]=0;
+	}
+
+	for(i=0;i<10;i++)
+	{
+		ptr=bucket2->arr[i].head;
+
+		if(ptr!=NULL)
+		{
+	
+			while(ptr!=NULL)
+			{
+				temp=g->arr[ptr->vertex].bin_no;
+
+				temp=temp/10;
+				distribution1[cnt][temp]=distribution1[cnt][temp]+1;		
+
+				ptr=ptr->next;
+
+			}
+			cnt++;
 		}
 	}
+					
+	for(i=0;i<10;i++)
+	{
+		for(j=0;j<7;j++)
+		printf("%d\t",distribution1[i][j]);
+
+		printf("\n");
+	}*/
+	
 	j++;
-	free(bucket2);
+	bucket2=NULL;
 	}
 	
 
@@ -558,7 +598,8 @@ struct node * merge(struct node *head1,struct node *head2)
         	t2 = t2->next;
     	}
  
-        head1=result;
+        //head1=result;
+	return result;
 }
 void push (struct node** head_ref, int new_data)
 {
