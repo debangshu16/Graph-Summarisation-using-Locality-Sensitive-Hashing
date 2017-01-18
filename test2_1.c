@@ -18,7 +18,7 @@ int h(int *vec,int x,int nc)
 	}
 	return s;
 } 
-
+int max;
 #define h1(x) (2*x+1)
 #define h2(x) (x+1)%100 
 #define g1(x) x%10
@@ -173,7 +173,7 @@ int main()
 		//printf("%d\n",g->arr[i].bin_no);
 	}
 
-	int max=g->arr[0].bin_no;
+	max=g->arr[0].bin_no;
 	for(i=0;i<v;i++)
 	{
 		if(g->arr[i].bin_no>max)
@@ -547,15 +547,15 @@ void lsh(int **a,int *elements,int n1,graph *g)
 	}
 					
 
-
-	int distribution[cntb][7];
+	max=(max/10)+1;
+	int distribution[cntb][max];
 	int cnt=0;
 
 	
 
 	for(i=0;i<cntb;i++)
 	{
-		for(j=0;j<7;j++)
+		for(j=0;j<max;j++)
 			distribution[i][j]=0;
 	}
 
@@ -582,7 +582,7 @@ void lsh(int **a,int *elements,int n1,graph *g)
 					
 	for(i=0;i<cntb;i++)
 	{
-		for(j=0;j<7;j++)
+		for(j=0;j<max;j++)
 		printf("%d\t",distribution[i][j]);
 
 		printf("\n");
