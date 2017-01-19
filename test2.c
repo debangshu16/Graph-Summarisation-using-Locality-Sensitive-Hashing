@@ -21,7 +21,7 @@ int h(int *vec,int x,int nc)
 
 #define h1(x) (2*x+1)
 #define h2(x) (x+1)%100 
-#define g1(x) x%10
+#define g1(x) x%47
 
 struct node *merge(struct node *,struct node *);
 
@@ -133,16 +133,16 @@ void print(graph *g)
 }
 int main()
 {
-	long int v=4039,e=88234;
-	//int v=63,e=318;
+	//long int v=4039,e=88234;
+	int v=64,e=318;
 	
 	int i,src,dest,t;
 	
 
 	FILE *fp;
-	fp=fopen("FB.txt","r");
+	//fp=fopen("FB.txt","r");
 
-	//fp=fopen("dolph.txt","r");
+	fp=fopen("dolph.txt","r");
 	 
 	 
 	double tmp,x;
@@ -387,7 +387,7 @@ void lsh(int **a,int *elements,int n1,graph *g)
 	
 	struct bucket *bucket=(struct bucket *)malloc(sizeof(struct bucket));
 	struct node *ptr;
-	bucket->arr=(struct bucketlist *)malloc(sizeof(struct bucketlist)*10);
+	bucket->arr=(struct bucketlist *)malloc(sizeof(struct bucketlist)*n1);
 
 	struct bucket *bucket2;
 	int t;
@@ -405,7 +405,7 @@ void lsh(int **a,int *elements,int n1,graph *g)
 	 
 	
 	 
-	for(i=0;i<10;i++)
+	for(i=0;i<n1;i++)
 	{
 		ptr=bucket->arr[i].head;
 	
@@ -427,7 +427,7 @@ void lsh(int **a,int *elements,int n1,graph *g)
 	
 	bucket2=(struct bucket *)malloc(sizeof(struct bucket));
 	 
-	bucket2->arr=(struct bucketlist *)malloc(sizeof(struct bucketlist)*10);
+	bucket2->arr=(struct bucketlist *)malloc(sizeof(struct bucketlist)*n1);
 
 	
 
@@ -442,7 +442,7 @@ void lsh(int **a,int *elements,int n1,graph *g)
 
 	
 	struct node *ptr2;
-	for(i=0;i<10;i++)
+	for(i=0;i<n1;i++)
 	{
 		ptr=bucket2->arr[i].head;
 
@@ -521,7 +521,7 @@ void lsh(int **a,int *elements,int n1,graph *g)
 	}
 	
 
-	for(i=0;i<10;i++)
+	for(i=0;i<n1;i++)
 	{
 		ptr=bucket->arr[i].head;
 		while(ptr)
@@ -545,7 +545,7 @@ void lsh(int **a,int *elements,int n1,graph *g)
 			distribution[i][j]=0;
 	}
 
-	for(i=0;i<10;i++)
+	for(i=0;i<n1;i++)
 	{
 		ptr=bucket->arr[i].head;
 
