@@ -26,7 +26,7 @@ int h(int a,int b,int x)
 //#define g1(x) x%2096
 int change=0;
 struct node *merge(struct node *,struct node *);
-struct inter *intersection(struct inter*,struct inter*,int);
+struct inter *intersection(struct inter*,int *,int,int);
 double jsv(struct node *,struct node *);
 
 struct node
@@ -103,9 +103,9 @@ graph* creategraph(int v)
 	{
 		g->arr[i].head=NULL;
 		g->arr[i].degree=0;
+		g->arr[i].grp_no=0;
 	}
- 	for(i=0;i<v;i++)
-	g->arr[i].grp_no=0;
+ 	
 
 	return g;
 }
@@ -205,6 +205,7 @@ int main()
 			if(g->arr[i].bin_no==j)
 			{
 				//printf("%d->",i);
+				//j=g->arr[i].bin_no;
 
 				q=newnode1(i);
 				q->next=bin->a[j].head;
@@ -214,11 +215,12 @@ int main()
 				cnt++;
 			}
 		}
-		//printf("%d\n",cnt);
-		//printf("\n");
 		bin->a[j].nn=cnt;
 		j++;
 	}
+		//printf("%d\n",cnt);
+		//printf("\n");
+		
 
 	 
 	
@@ -336,22 +338,29 @@ void lsh(int **a,int *elements,int n1,graph *g)
 {
 
 	int i,j,r=n1,c=n1,k,temp1,temp,cntb=0;
+
+	struct node *ptr;
+
+	int grouping[g->v];
+
+	for(i=0;i<n1;i++)
+	grouping[i]=-1;
+
 	struct inter *cpy=NULL,*cpy2=NULL;
 
-	struct bucket *bucket1=NULL;
 	 
-	 srand(time(NULL));
+	srand(time(NULL));
 
 	
-	int nh=30;
+	int nh=34;
 	int M[nh][n1];
 
 	struct hash hash[nh];
 
 	for(i=0;i<nh;i++)
 	{
-		hash[i].a=((rand()%500)+1)/20;
-		hash[i].b=(rand()%50)+1;
+		hash[i].a= (rand()%nh)*2+1;
+		hash[i].b=(rand()%100)+1;
 	}
 
 	 
@@ -385,30 +394,26 @@ void lsh(int **a,int *elements,int n1,graph *g)
 		}
 	}
 
-	int s1,s2;
 	 
-	j=0;
-	for(j=0;j<nh;j+=2){
-	 
-	
-	cpy2=cpy;
-	 
-	
 
-	struct inter *mat1=(struct inter *)malloc(sizeof(struct inter));
+	int s1,s2 ;
+	
+	j=0;
+	
+	
 	struct inter *mat2=(struct inter *)malloc(sizeof(struct inter));
 
 	 
 	
 
 	struct bucket *bucket=(struct bucket *)malloc(sizeof(struct bucket));
-	struct node *ptr;
+	
 	bucket->arr=(struct bucketlist *)malloc(sizeof(struct bucketlist)*n1);
 
 	struct bucket *bucket2;
 	int t;
 
-	for(i=0;i<c;i++)
+	for(i=0;i<n1;i++)
 	{
 		t=(M[j][i]);
 		ptr=newnode1(elements[i]);
@@ -426,22 +431,23 @@ void lsh(int **a,int *elements,int n1,graph *g)
 		ptr=bucket->arr[i].head;
 	
 		if(ptr!=NULL)
+		{
 			cntb++;		
 
-		while(ptr!=NULL)
-		{
-			//printf("%d->",ptr->vertex);
+			while(ptr!=NULL)
+			{
+			
 			 
-			g->arr[ptr->vertex].group=cntb-1;
-			g->arr[ptr->vertex].grp_no=i;
-			ptr=ptr->next;
+				g->arr[ptr->vertex].group=cntb-1;
+				g->arr[ptr->vertex].grp_no=i;
+				ptr=ptr->next;
+			}
 		}
-		//printf("\n\n");
+		
 	}
 
 	
-	if(j==0)
-	printf("\nInitial no of groups=%d\n",cntb);
+	 
 	
 	
 	bucket2=(struct bucket *)malloc(sizeof(struct bucket));
@@ -450,7 +456,7 @@ void lsh(int **a,int *elements,int n1,graph *g)
 
 	//cntb=0;
 
-	for(i=0;i<c;i++)
+	for(i=0;i<n1;i++)
 	{
 		t=(M[j+1][i]);
 		ptr=newnode1(elements[i]);
@@ -490,11 +496,184 @@ void lsh(int **a,int *elements,int n1,graph *g)
 					
 				if(temp1!=temp )
 				{
+					 
 					bucket->arr[temp1].head=merge(bucket->arr[temp1].head,bucket->arr[temp].head);
 					bucket->arr[temp].head=NULL;
 					
 					
 				}
+				
+
+				}
+
+				ptr=ptr->next;
+				
+				
+				
+			}
+			
+		}
+		
+	}
+
+	
+	
+	cntb=0;
+	for(i=0;i<n1;i++)
+	{
+		ptr=bucket->arr[i].head;
+		if(ptr!=NULL)
+		{
+			cntb++;
+			 
+		}
+	}
+	
+	int t1=0;
+	
+	mat2->size=cntb;
+	mat2->a=(int **)malloc(sizeof(int*)*mat2->size);
+
+	for(i=0;i<cntb;i++)
+	mat2->a[i]=(int *)malloc(sizeof(int)*n1);
+
+	for(i=0;i<n1;i++)
+	{
+		for(k=0;k<mat2->size;k++)
+		mat2->a[k][i]=0;
+	}
+
+	 	 				
+	
+
+	for(i=0;i<n1;i++)
+	{
+		ptr=bucket->arr[i].head;
+		if(ptr!=NULL)
+		{
+			
+					
+			while(ptr!=NULL)
+			{
+				t=posn(elements,n1,ptr->vertex);
+				mat2->a[t1][t]=1;
+				grouping[ptr->vertex]=t1;
+				ptr=ptr->next;
+			}
+			t1++;
+		}
+	}
+
+	bucket=NULL;
+	bucket2=NULL;
+	
+	free(bucket);
+	free(bucket2);
+
+	for(j=2;j<nh;j+=2)
+	{
+
+	cntb=0;
+		
+	struct bucket *bucket1=(struct bucket *)malloc(sizeof(struct bucket));
+	
+	bucket1->arr=(struct bucketlist *)malloc(sizeof(struct bucketlist)*n1);
+ 
+	 
+
+	 
+	for(i=0;i<n1;i++)
+	{
+		t=(M[j][i]);
+		ptr=newnode1(elements[i]);
+		ptr->next=bucket1->arr[t].head;
+		bucket1->arr[t].head=ptr;
+			
+	}
+	
+	
+	 
+	
+	 
+	for(i=0;i<n1;i++)
+	{
+		ptr=bucket1->arr[i].head;
+	
+		if(ptr!=NULL)
+		{
+			cntb++;		
+
+			while(ptr!=NULL)
+			{
+			
+			 
+				g->arr[ptr->vertex].group=cntb-1;
+				g->arr[ptr->vertex].grp_no=i;
+				ptr=ptr->next;
+			}
+		}
+		
+	}
+
+	
+	struct bucket *bucket12=(struct bucket *)malloc(sizeof(struct bucket));
+	
+	bucket12->arr=(struct bucketlist *)malloc(sizeof(struct bucketlist)*n1);
+ 
+	
+	
+	 
+	 
+	 
+	 
+
+	for(i=0;i<n1;i++)
+	{
+		t=(M[j+1][i]);
+		ptr=newnode1(elements[i]);
+		ptr->next=bucket12->arr[t].head;
+		bucket12->arr[t].head=ptr;
+		
+	}
+
+	
+	 
+	for(i=0;i<n1;i++)
+	{
+		ptr=bucket12->arr[i].head;
+
+		if(ptr!=NULL)
+		{
+			while(ptr!=NULL)
+			{
+								
+				ptr2=ptr;				
+				s1=g->arr[ptr2->vertex].group;
+				temp1=g->arr[ptr->vertex].grp_no;
+				
+				while(g->arr[ptr2->vertex].group==s1)
+				{
+					
+						
+					ptr2=ptr2->next;
+					
+
+					
+					if(ptr2==NULL)
+					break;
+				}
+				if(ptr2!=NULL){
+				temp=g->arr[ptr2->vertex].grp_no;
+					
+				if(temp1!=temp )
+				{
+					 
+					bucket1->arr[temp1].head=merge(bucket1->arr[temp1].head,bucket1->arr[temp].head);
+					bucket1->arr[temp].head=NULL;
+					
+					
+				}
+
 				}
 
 				
@@ -507,104 +686,100 @@ void lsh(int **a,int *elements,int n1,graph *g)
 		
 	}
 
-	struct node *tmpptr;
-
-	if(j!=0){
-
-	for(i=0;i<n1;i++)
-	{
-		ptr=bucket->arr[i].head;
-		if(ptr!=NULL)
-		{
-			if(g->arr[ptr->vertex].grp_no != i)
-			{
-				tmpptr=bucket->arr[i].head;
-				bucket->arr[i].head=bucket->arr[(g->arr[ptr->vertex].grp_no)].head;
-				bucket->arr[(g->arr[ptr->vertex].grp_no)].head=tmpptr;
-				change++;
-			}
-		}
-	}
-	}
-	
 	cntb=0;
 	for(i=0;i<n1;i++)
 	{
-		ptr=bucket->arr[i].head;
+		ptr=bucket1->arr[i].head;
 		if(ptr!=NULL)
-		{
 			cntb++;
-			while(ptr!=NULL)
-			{
-				g->arr[ptr->vertex].group=cntb-1;
-				g->arr[ptr->vertex].grp_no=i;
-				ptr=ptr->next;
-			}
-		}
 	}
 
-		
+	struct inter *mat1=(struct inter *)malloc(sizeof(struct inter));
 
-	 
-	 
-	 				
+	mat1->size=cntb;
 	
-	int t1;
-	
-	mat2->size=cntb;
-	mat2->a=(int **)malloc(sizeof(int*)*cntb);
+	mat1->a=(int **)malloc(sizeof(int*)*mat1->size);
 
-	for(i=0;i<cntb;i++)
-	mat2->a[i]=(int *)malloc(sizeof(int)*n1);
-
-	for(i=0;i<n1;i++)
+	for(i=0;i<mat1->size;i++)
 	{
-		for(k=0;k<cntb;k++)
-		mat2->a[k][i]=0;
+		mat1->a[i]=(int *)malloc(sizeof(int)*n1);
+		for(k=0;k<n1;k++)
+		mat1->a[i][k]=0;
 	}
-
+	 
+	t1=0;
 	for(i=0;i<n1;i++)
 	{
-		ptr=bucket->arr[i].head;
+		ptr=bucket1->arr[i].head;
 		if(ptr!=NULL)
 		{
-			t1=(g->arr[ptr->vertex].group);
-					
 			while(ptr!=NULL)
 			{
 				t=posn(elements,n1,ptr->vertex);
-				mat2->a[t1][t]=1;
+				mat1->a[t1][t]=1;
 				ptr=ptr->next;
+			}
+			t1++;
+		}
+	}
+
+	t1=0;
+
+	 
+
+	for(i=0;i<mat1->size;i++)
+	{
+		for(k=0;k<n1;k++)
+		{
+			if(mat1->a[i][k]==1)
+			{
+				t1=grouping[elements[k]];
+				mat2=intersection(mat2,mat1->a[i],t1,n1);
 			}
 		}
 	}
 
-	
-	cpy=mat2;
-	cntb=0;	 
-	
-	if(cpy2!=NULL)
-	cpy=intersection(cpy,cpy2,n1);
-
-	//if(cpy2==NULL)
-	//printf("\nERROR %d",j);
-
-	}
-	 
-	/*for(i=0;i<cpy->size;i++)
+	for(i=0;i<mat2->size;i++)
 	{
 		for(k=0;k<n1;k++)
 		{
-			if(cpy->a[i][k]==1)
-			printf("%d->",elements[k]);
+			if(mat2->a[i][k]==1)
+			{
+				grouping[elements[k]]=i;
+			}
 		}
-		printf("\n\n");
-	}*/
-	//printf("%dmax",max);	
+	}
+	 
+	ptr=NULL;
+
+	}
+		
+	cpy=mat2;			
+
+	/*for(i=0;i<mat2->size;i++)
+	{
+		for(j=0;j<n1;j++)
+		{
+			if(mat2->a[i][j]==1)
+			{
+				printf("%d->",elements[j]);
+			}
+		}
+		printf("\n");
+	} */
 	
+		
+	
+	
+	 
+
+	 
+		
+	
+
 	max=max/10;
 	int distribution[cpy->size][max];
-	int t;
+	 
 
 	for(i=0;i<cpy->size;i++)
 	{
@@ -612,6 +787,7 @@ void lsh(int **a,int *elements,int n1,graph *g)
 		distribution[i][j]=0;
 	}
 	int posng;
+
 	for(i=0;i<cpy->size;i++)
 	{
 		for(j=0;j<n1;j++)
@@ -620,9 +796,9 @@ void lsh(int **a,int *elements,int n1,graph *g)
 			{
 				t=(g->arr[elements[j]].bin_no)/10;
 				
-				
-					if((t+1)>=max)
-					posng=i;
+				if(t==max-1)
+				posng=i;
+					 
 				
 				distribution[i][t]++;
 			}
@@ -684,7 +860,8 @@ void lsh(int **a,int *elements,int n1,graph *g)
 	for(i=0;i<cpy->size;i++)
 	{	
 		 
-		if(count[i]>2  )
+		if(count[i]>2 &&count[i]<=10 )
+		//if(i==posng)
 		{
 		
 			
@@ -729,6 +906,45 @@ void lsh(int **a,int *elements,int n1,graph *g)
 	printf("\nFinal no of groups%d",cpy->size);
 	 
 }
+struct inter *intersection(struct inter *mat,int *a,int pos,int n1)
+{
+	int i,k,xor1,flaga=0,p1;
+	int visited[n1];
+	for(i=0;i<n1;i++)
+	visited[i]=0;
+
+	for(i=0;i<n1;i++)
+	{
+		xor1= mat->a[pos][i] ^ a[i];
+		if(xor1==1)
+		{
+			if(mat->a[pos][i]==1)
+			{
+				visited[i]=1;
+				flaga=1;
+				mat->a[pos][i]=0;
+			}
+		}
+	}
+	
+	if(flaga==1)
+	{
+		mat->size=mat->size+1;
+		mat->a=(int **)realloc(mat->a,(sizeof(int *)*mat->size));
+		p1=mat->size-1;
+		mat->a[p1]=(int *)malloc(sizeof(int)*n1);
+		
+		for(i=0;i<n1;i++)
+		mat->a[p1][i]=visited[i];
+
+	}
+
+	return mat;
+}
+		
+		 
+		
+	
 void js(double **mat,int *elem,int n,graph *g)
 {
 	int j,k;
@@ -798,106 +1014,7 @@ int isPresent (struct node *head, int data)
     }
     return 0;
 }
-struct inter * intersection(struct inter *mat11,struct inter *mat22,int n1)
-{
-	int p1=0,i,k,j,t,lim;
-
-	struct inter *q=(struct inter *)malloc(sizeof(struct inter));
-	q->size=mat11->size;	//	 + mat22->size );
-	
-	q->a=(int **)malloc(sizeof(int *)* q->size);
-	for(i=0;i<q->size;i++)
-	q->a[i]=(int *)malloc(sizeof(int)*n1);
-	
-	/*for(i=0;i<q->size;i++)
-	{
-		for(j=0;j<n1;j++)
-		q->a[i][j]=0;
-	}*/
-
-	for(i=0;i<mat11->size;i++)
-	{
-		for(j=0;j<n1;j++)
-		q->a[i][j]=mat11->a[i][j];
-	}
-
-	lim=(mat11->size < mat22->size)?mat11->size:mat22->size;
-
-	p1=mat11->size;
-	k=0;
-
-	int counta=0,countb=0;
-	int visited1[n1],visited2[n1];
-
-	for(i=0;i<n1;i++)
-	{
-		visited1[i]=visited2[i]=0;
-	}
-	
-		for(i=0;i<lim;i++)
-		{
-			for(k=0;k<n1;k++)
-			{
-			 
-				t=mat11->a[i][k] ^ mat22->a[i][k];
-			 
-				if(t==1  )
-				{
-					q->a[i][k]=0;
-					if(mat11->a[i][k]==1)
-					{
-						counta++;
-						visited1[k]=1;
-					}
-					else
-					{
-						countb++;
-						visited2[k]=1;
-					}
-					 
-
-				 
-				}
-					
-			}
-
-			if(counta!=0)
-			{
-				q->size=q->size+1;
-				q->a=(int **)realloc(q->a,sizeof(int *)*q->size);
-				p1=q->size-1;
-				q->a[p1]=(int *)malloc(sizeof(int)*n1);
-				for(k=0;k<n1;k++)
-				{
-					q->a[p1][k]=visited1[k];
-				}
-				 
-			}
-			if(countb!=0)
-			{
-				q->size=q->size+1;
-				q->a=(int **)realloc(q->a,sizeof(int *)*q->size);
-				p1=q->size-1;
-				q->a[p1]=(int *)malloc(sizeof(int)*n1);
-				for(k=0;k<n1;k++)
-				{
-					q->a[p1][k]=visited2[k];
-				}
-				 
-			}
-		 
-			counta=countb=0;
-			for(k=0;k<n1;k++)
-			{visited1[k]=visited2[k]=0;}
-
-		}
-				 
-	
-
-
-	return q;	
-
-}
+ 
 struct node *getIntersection(struct node *head1, 
                               struct node *head2)
 {
