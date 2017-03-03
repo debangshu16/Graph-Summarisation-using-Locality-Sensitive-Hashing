@@ -129,13 +129,13 @@ void print(graph *g)
 	{
 		struct node *ptr=g->arr[i].head;
 
-		/*printf(" %d -> ",i);
+		printf(" %d -> ",i);
 		while(ptr!=NULL)
 		{
 			printf("%d - > ",ptr->vertex);
 			ptr=ptr->next;
-		}*/
-		printf("%d",g->arr[i].degree);
+		}
+		//printf("%d",g->arr[i].degree);
 		printf("\n");
 	}
 }
@@ -173,11 +173,11 @@ int main()
 	{
 		tmp=g->arr[i].degree;
 		tmp=log(tmp);
-		t=tmp*10;
-		tmp=t/10.0;
+		tmp*=10;
+		t=(int)tmp;
 
 		//printf("%lf\n",tmp);
-		g->arr[i].bin_no=tmp*10;
+		g->arr[i].bin_no=t;
 		//printf("%d\n",g->arr[i].bin_no);
 	}
 
@@ -223,42 +223,57 @@ int main()
 		
 
 	 
-	
+	//printf("MAx=%d\n",max);
 	int visited[v];
 	int n1=0;
 
+	//int elem[3];
+	int pos1,pos2;
+
+	pos1=(max-1)/10;
+
+	printf("pos1=%d\n",pos1);
 	for(i=0;i<v;i++)
 	visited[i]=0;
 
-	struct node *ptr,*nptr;
+	struct node *ptr,*nptr,*ptrs;
 	for(i=max-10;i<max;i++)
 	{
-		//n1+=bin->a[i].nn;
+		 
 		ptr=bin->a[i].head;
+		if(ptr!=NULL){
 		while(ptr!=NULL)
 		{
-			if(visited[ptr->vertex]==0){			
-			visited[ptr->vertex]=1;
-			n1++;
-			nptr=g->arr[ptr->vertex].head;
-
-			while(nptr!=NULL)
-			{
-				if(visited[nptr->vertex]==0)
+			if(visited[ptr->vertex]==0)
+			{			
+				visited[ptr->vertex]=1;
+				n1++;
+				nptr=g->arr[ptr->vertex].head;
+				
+				while(nptr!=NULL)
 				{
-					n1++;
-					visited[nptr->vertex]=1;
+					pos2=g->arr[nptr->vertex].bin_no/10;
+					if(pos2 == (pos1-1) )
+					{
+					 	
+						if(visited[nptr->vertex]==0)
+						{
+							n1++;
+							visited[nptr->vertex]=1;
+						}
+					}
+					nptr=nptr->next;
 				}
-				nptr=nptr->next;
-			}
 			
-			}
+			}		
 			ptr=ptr->next;
 		}
-		
+
+		}
+		 
 	}
 
-	//printf("%d",n1);
+	 
 	cnt=0;
 	
 	struct adjmat adjmat;
@@ -306,20 +321,21 @@ int main()
 			ptr=ptr->next;
 		}
 	}
-	modv=n1;
-	//printf("%d\t",n1);
+	modv=v;
+	//printf("%d\t\n",n1);
+
+	/*printf("Elements:\n");
+	for(i=0;i<n1;i++)
+	printf("%d\n",adjmat.elements[i]);*/
+	 
 	lsh(adjmat.mat,adjmat.elements,n1,g);
 
-	// printf("\n%d",change);
+	 
 	 
 
-	/*for(i=0;i<n1;i++)
-	{
-		for(j=0;j<n1;j++)
-		printf("%d\t",adjmat.mat[i][j]);
+	
 
-		printf("\n");
-	}*/
+	//print(g);
 }
 int posn(int *elements,int n,int key)
 {
@@ -337,13 +353,13 @@ int posn(int *elements,int n,int key)
 void lsh(int **a,int *elements,int n1,graph *g)
 {
 
-	int i,j,r=n1,c=n1,k,temp1,temp,cntb=0;
+	int i,j,k,temp1,temp,cntb=0;
 
 	struct node *ptr;
 
 	int grouping[g->v];
 
-	for(i=0;i<n1;i++)
+	for(i=0;i<g->v;i++)
 	grouping[i]=-1;
 
 	struct inter *cpy=NULL,*cpy2=NULL;
@@ -352,7 +368,7 @@ void lsh(int **a,int *elements,int n1,graph *g)
 	srand(time(NULL));
 
 	
-	int nh=34;
+	int nh=30;
 	int M[nh][n1];
 
 	struct hash hash[nh];
@@ -366,20 +382,23 @@ void lsh(int **a,int *elements,int n1,graph *g)
 	 
 	 	 
 	 
-	 
+	for(i=0;i<n1;i++)
+	printf("%d\t",elements[i]);
+
+	printf("\n\n"); 
 	
 	for(i=0;i<nh;i++)
 	{
-		for(j=0;j<c;j++)
-			M[i][j]=9999;
+		for(j=0;j<n1;j++)
+			M[i][j]=g->v;
 	}
 
 	 
 	 
 
-	for(i=0;i<r;i++)
+	for(i=0;i<n1;i++)
 	{
-		for(j=0;j<c;j++)
+		for(j=0;j<n1;j++)
 		{
 			if(a[i][j]==1)
 			{
@@ -394,6 +413,13 @@ void lsh(int **a,int *elements,int n1,graph *g)
 		}
 	}
 
+	for(i=0;i<nh;i++)
+	{
+		for(j=0;j<n1;j++)
+		printf("%d\t",M[i][j]);
+
+		printf("\n\n");
+	}
 	 
 
 	int s1,s2 ;
@@ -408,7 +434,7 @@ void lsh(int **a,int *elements,int n1,graph *g)
 
 	struct bucket *bucket=(struct bucket *)malloc(sizeof(struct bucket));
 	
-	bucket->arr=(struct bucketlist *)malloc(sizeof(struct bucketlist)*n1);
+	bucket->arr=(struct bucketlist *)malloc(sizeof(struct bucketlist)*g->v);
 
 	struct bucket *bucket2;
 	int t;
@@ -424,9 +450,9 @@ void lsh(int **a,int *elements,int n1,graph *g)
 	
 	
 	 
-	
+	printf("\t\t\t BUCKET 1:\n\n\n");
 	 
-	for(i=0;i<n1;i++)
+	for(i=0;i<g->v;i++)
 	{
 		ptr=bucket->arr[i].head;
 	
@@ -437,11 +463,12 @@ void lsh(int **a,int *elements,int n1,graph *g)
 			while(ptr!=NULL)
 			{
 			
-			 
+			 	//printf("%d->",ptr->vertex);
 				g->arr[ptr->vertex].group=cntb-1;
 				g->arr[ptr->vertex].grp_no=i;
 				ptr=ptr->next;
 			}
+			//printf("\n\n");
 		}
 		
 	}
@@ -452,7 +479,7 @@ void lsh(int **a,int *elements,int n1,graph *g)
 	
 	bucket2=(struct bucket *)malloc(sizeof(struct bucket));
 	 
-	bucket2->arr=(struct bucketlist *)malloc(sizeof(struct bucketlist)*n1);
+	bucket2->arr=(struct bucketlist *)malloc(sizeof(struct bucketlist)*g->v);
 
 	//cntb=0;
 
@@ -465,9 +492,26 @@ void lsh(int **a,int *elements,int n1,graph *g)
 		
 	}
 
+	printf("\t\t\t  BUCKET 2\n\n\n");
+
+	/*for(i=0;i<n1;i++)
+	{
+		ptr=bucket2->arr[i].head;
+		if(ptr!=NULL)
+		{
+			while(ptr!=NULL)
+			{
+				printf("%d->",ptr->vertex);
+				ptr=ptr->next;
+			}
+			printf("\n\n");
+		}
+	}*/
+
+	temp=temp1=-1;
 	
 	struct node *ptr2;
-	for(i=0;i<n1;i++)
+	for(i=0;i<g->v;i++)
 	{
 		ptr=bucket2->arr[i].head;
 
@@ -502,7 +546,7 @@ void lsh(int **a,int *elements,int n1,graph *g)
 					
 					
 				}
-				
+				 ptr=ptr2;
 
 				}
 
@@ -519,12 +563,18 @@ void lsh(int **a,int *elements,int n1,graph *g)
 	
 	
 	cntb=0;
-	for(i=0;i<n1;i++)
+	for(i=0;i<g->v;i++)
 	{
 		ptr=bucket->arr[i].head;
 		if(ptr!=NULL)
 		{
 			cntb++;
+			while(ptr!=NULL)
+			{
+				printf("%d->",ptr->vertex);
+				ptr=ptr->next;
+			}
+			printf("\n");
 			 
 		}
 	}
@@ -546,7 +596,7 @@ void lsh(int **a,int *elements,int n1,graph *g)
 	 	 				
 	
 
-	for(i=0;i<n1;i++)
+	for(i=0;i<g->v;i++)
 	{
 		ptr=bucket->arr[i].head;
 		if(ptr!=NULL)
@@ -577,7 +627,7 @@ void lsh(int **a,int *elements,int n1,graph *g)
 		
 	struct bucket *bucket1=(struct bucket *)malloc(sizeof(struct bucket));
 	
-	bucket1->arr=(struct bucketlist *)malloc(sizeof(struct bucketlist)*n1);
+	bucket1->arr=(struct bucketlist *)malloc(sizeof(struct bucketlist)*g->v);
  
 	 
 
@@ -594,8 +644,8 @@ void lsh(int **a,int *elements,int n1,graph *g)
 	
 	 
 	
-	 
-	for(i=0;i<n1;i++)
+	printf("\t\t\t BUCKET %d\n\n",j+1); 
+	for(i=0;i<g->v;i++)
 	{
 		ptr=bucket1->arr[i].head;
 	
@@ -606,11 +656,12 @@ void lsh(int **a,int *elements,int n1,graph *g)
 			while(ptr!=NULL)
 			{
 			
-			 
+			 	//printf("%d->",ptr->vertex);
 				g->arr[ptr->vertex].group=cntb-1;
 				g->arr[ptr->vertex].grp_no=i;
 				ptr=ptr->next;
 			}
+			//printf("\n\n");
 		}
 		
 	}
@@ -618,7 +669,7 @@ void lsh(int **a,int *elements,int n1,graph *g)
 	
 	struct bucket *bucket12=(struct bucket *)malloc(sizeof(struct bucket));
 	
-	bucket12->arr=(struct bucketlist *)malloc(sizeof(struct bucketlist)*n1);
+	bucket12->arr=(struct bucketlist *)malloc(sizeof(struct bucketlist)*g->v);
  
 	
 	
@@ -636,9 +687,24 @@ void lsh(int **a,int *elements,int n1,graph *g)
 		
 	}
 
-	
-	 
-	for(i=0;i<n1;i++)
+	printf("\t\t\t  BUCKET %d\n\n\n",j+2);
+
+	/*for(i=0;i<n1;i++)
+	{
+		ptr=bucket12->arr[i].head;
+		if(ptr!=NULL)
+		{
+			while(ptr!=NULL)
+			{
+				printf("%d->",ptr->vertex);
+				ptr=ptr->next;
+			}
+			printf("\n\n");
+		}
+	}*/	
+	ptr=NULL;
+
+	for(i=0;i<g->v;i++)
 	{
 		ptr=bucket12->arr[i].head;
 
@@ -687,11 +753,19 @@ void lsh(int **a,int *elements,int n1,graph *g)
 	}
 
 	cntb=0;
-	for(i=0;i<n1;i++)
+	for(i=0;i<g->v;i++)
 	{
 		ptr=bucket1->arr[i].head;
 		if(ptr!=NULL)
+		{	
 			cntb++;
+			while(ptr!=NULL)
+			{
+				printf("%d->",ptr->vertex);
+				ptr=ptr->next;
+			}
+			printf("\n\n");
+		}
 	}
 
 	struct inter *mat1=(struct inter *)malloc(sizeof(struct inter));
@@ -708,7 +782,7 @@ void lsh(int **a,int *elements,int n1,graph *g)
 	}
 	 
 	t1=0;
-	for(i=0;i<n1;i++)
+	for(i=0;i<g->v;i++)
 	{
 		ptr=bucket1->arr[i].head;
 		if(ptr!=NULL)
@@ -768,9 +842,19 @@ void lsh(int **a,int *elements,int n1,graph *g)
 		printf("\n");
 	} */
 	
-		
+	printf("\nRESULT:\n");	
 	
-	
+	for(i=0;i<cpy->size;i++)
+	{
+		for(j=0;j<n1;j++)
+		{
+			if(cpy->a[i][j]==1)
+			{
+				printf("%d->",elements[j]);
+			}
+		}
+		printf("\n");
+	}
 	 
 
 	 
@@ -787,24 +871,6 @@ void lsh(int **a,int *elements,int n1,graph *g)
 		distribution[i][j]=0;
 	}
 	int posng;
-
-	for(i=0;i<cpy->size;i++)
-	{
-		for(j=0;j<n1;j++)
-		{
-			if(cpy->a[i][j]==1)
-			{
-				t=(g->arr[elements[j]].bin_no)/10;
-				
-				if(t==max-1)
-				posng=i;
-					 
-				
-				distribution[i][t]++;
-			}
-		}
-	}
-
 	int count[cpy->size];
 	for(i=0;i<cpy->size;i++)
 	count[i]=0;
@@ -818,12 +884,32 @@ void lsh(int **a,int *elements,int n1,graph *g)
 		}			
 		 
 	}
+
+	 
+	for(i=0;i<cpy->size;i++)
+	{
+		for(j=0;j<n1;j++)
+		{
+			if(cpy->a[i][j]==1)
+			{
+				
+				t=(g->arr[elements[j]].bin_no)/10;
+				if(t==max-1 && count[i] >2)
+				posng=i;
+				distribution[i][t]++;
+			}
+		}
+		
+	}
+
+	
 	for(i=0;i<cpy->size;i++)
 	{
 		if(count[i]>2){
 		for(j=0;j<max;j++)
 		{
 			printf("%d\t",distribution[i][j]);
+			
 		}
 		printf("\n");
 		}
@@ -857,10 +943,11 @@ void lsh(int **a,int *elements,int n1,graph *g)
 	js(jsmat,elem,n,g);
 	*/
 
+	ptr=NULL;
 	for(i=0;i<cpy->size;i++)
 	{	
 		 
-		if(count[i]>2 &&count[i]<=10 )
+		if(count[i]>2  )
 		//if(i==posng)
 		{
 		
@@ -879,19 +966,37 @@ void lsh(int **a,int *elements,int n1,graph *g)
 			jsmat[j]=(double *)malloc(sizeof(double)*n);
 
 			elem=(int *)malloc(sizeof(int)*n);
+
+			printf("\n Elements:\n");
 			
 			for(j=0;j<n1;j++)
 			{
 				if(cpy->a[i][j]==1)
-				elem[pos++]=elements[j];
+				{
+					elem[pos++]=elements[j];
+					//printf("%d\t",elements[j]);
+				}
+			}
+			for(k=0;k<n;k++)
+			printf("%d\n",elem[k]);
+
+			for(k=0;k<n;k++)
+			{
+				ptr=g->arr[elem[k]].head;
+				while(ptr!=NULL)
+				{
+					printf("%d->",ptr->vertex);
+					ptr=ptr->next;
+				}
+				printf("\n\n");
 			}
 			
 			printf("\nn=%d\n",n);
 			printf("\nJACCARD SIMILARITY MATRIX\n");
 			js(jsmat,elem,n,g);
 			
-			if(n!=0)
-			break; 
+		//	if(n!=0)
+		//	break; 
 			 
 			elem=NULL;
 			jsmat=NULL;
