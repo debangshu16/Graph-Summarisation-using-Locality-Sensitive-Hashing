@@ -56,6 +56,8 @@ struct adjlist
 	int grp_no;
 
 	int  group;
+	double score;
+	int flag;
 };
 
 typedef struct graph
@@ -86,6 +88,8 @@ struct bucketlist
 {
 	struct node *head;
 	int grplength;
+	char grptype[20];
+	double grp_score;
 };
 struct bucket
 {
@@ -119,6 +123,7 @@ graph* creategraph(int v)
 		g->arr[i].head=NULL;
 		g->arr[i].degree=0;
 		g->arr[i].grp_no=0;
+		g->arr[i].flag=0;
 	}
  	
 
@@ -214,7 +219,11 @@ int main()
 	bin->a=(struct binlist *)malloc(sizeof(struct binlist)*max);
 
 	struct node *q;
-		
+
+	int dist[7];
+	for(i=0;i<7;i++)
+	dist[i]=0;
+	
 	int cnt;
 	int j=0;	
 	while(j<max)
@@ -230,7 +239,8 @@ int main()
 				q=newnode1(i);
 				q->next=bin->a[j].head;
 				bin->a[j].head=q;
-	
+				
+				
 				
 				cnt++;
 			}
@@ -241,6 +251,15 @@ int main()
 		//printf("%d\n",cnt);
 		//printf("\n");
 		
+	cnt=0;
+	
+	for(i=0;i<7;i++)
+	{
+		for(j=cnt;j<(cnt+10);j++)
+		dist[i]+=bin->a[j].nn;
+
+		cnt+=10;
+	}
 
 	 
 	
@@ -339,7 +358,7 @@ int main()
 	modv=v;
 	 
 	lsh(adjmat.mat,adjmat.elements,n1,g);
-	 
+	scoring_nodes(g); 
 	// printf("\n%d",change);
 	 
 
@@ -352,6 +371,25 @@ int main()
 	}*/
 
 	//print(g);
+}
+void scoring_nodes(graph *g)
+{
+	int i,cnt=0;
+	struct node *ptr;
+	for(i=0;i<g->v;i++)
+	{
+		ptr=g->arr[i].head;
+		cnt=0;
+		while(ptr!=NULL)
+		{
+			if(g->arr[ptr->vertex].flag!=0)
+			cnt++;
+			ptr=ptr->next;
+		}
+
+		g->arr[i].score=(double)cnt/g->arr[i].degree;
+		//printf("%lf\n",g->arr[i].score);
+	}
 }
 int posn(int *elements,int n,int key)
 {
@@ -805,6 +843,7 @@ void lsh(int **a,int *elements,int n1,graph *g)
 	}
 
 	int cnt=0;
+	 
 	for(i=0;i<cpybucket->size;i++)
 	{
 		ptr=cpybucket->arr[i].head;
@@ -812,10 +851,11 @@ void lsh(int **a,int *elements,int n1,graph *g)
 		{
 			while(ptr!=NULL)
 			{
-				
+				if(g->arr[ptr->vertex].flag==0)
+				g->arr[ptr->vertex].flag=1;
 				s1=getno(getIntersection(g->arr[ptr->vertex].head,cpybucket->arr[i].head));
 				ptr->score=(double)s1/cpybucket->arr[i].grplength;
-				//printf("%lf->",ptr->score);
+				//printf("%lf  ",ptr->score);
 				ptr=ptr->next;
 			}
 			//printf("\n");
@@ -824,13 +864,22 @@ void lsh(int **a,int *elements,int n1,graph *g)
 		}
 	}
 
+	 
+	countg=cnt;
+	 
+	 
+
 	struct bucket * bin=(struct bucket *)malloc(sizeof(struct bucket));
 	bin->size=cnt*11;
 	bin->arr=(struct bucketlist *)malloc(sizeof(struct bucketlist)*bin->size);
 
+	for(i=0;i<bin->size;i++)
+	bin->arr[i].grplength=0;
+
 	struct node *tnode;
 	cnt=0;
 
+	 
 	for(i=0;i<cpybucket->size;i++)
 	{
 		ptr=cpybucket->arr[i].head;
@@ -846,21 +895,92 @@ void lsh(int **a,int *elements,int n1,graph *g)
 				t=(int)(ptr->score*10)+1+cnt;
 
 				tnode=newnode1(ptr->vertex);
+				tnode->score=ptr->score;
 				tnode->next=bin->arr[t].head;
 				bin->arr[t].head=tnode;
-
+				bin->arr[t].grplength++;
 				ptr=ptr->next;
+
+				 
+				 
 			}
 			cnt+=11;
 		}
 	}
-
+	
 	cnt=0;
-	int nvsize;
+
 	for(i=0;i<bin->size;i++)
 	{
-		//if(i%11==0)
-		//printf("\n Group \n");
+		if(i%11==0)
+		{
+			printf("\n");
+			
+			if(i!=0)
+			bin->arr[i-11].grp_score=(double)1/cnt;
+
+			cnt=0;
+		}
+		printf("%d\t",getno(bin->arr[i].head));
+		if(bin->arr[i].head!=NULL)
+		cnt++;
+	}
+
+	bin->arr[i-11].grp_score=(double)1/cnt;
+
+	 
+
+	 
+	for(i=0;i<countg;i++)
+	printf("%lf\n",bin->arr[(i*11)].grp_score);
+
+	double score_a,nscore;
+	for(i=0;i<countg;i++)
+	{
+		//printf("%lf\n",bin->arr[(i*11)].grp_score);
+		score_a=bin->arr[(i*11)].grp_score;
+		if(score_a <=0.4)
+		{
+			j=i*11+1;
+			while(j<(i*11+6))
+			{
+				ptr=bin->arr[j].head;
+				 
+				printf("\n Bin %d\n",(j%11)+1);
+				while(ptr!=NULL)
+				{
+					 s1=getno(getIntersection(g->arr[ptr->vertex].head,bin->arr[j].head));
+					 nscore=(double)s1/getno(bin->arr[j].head);
+					 ptr->score=nscore;
+					 printf("%lf\t",nscore);
+					 ptr=ptr->next;
+				}
+				
+				j++;
+			}
+
+			printf("\n\n\n");
+		}
+	}
+			
+		
+	 
+	 
+			
+	 
+	cnt=0;
+	int nvsize,pos,pos2;
+	for(i=0;i<bin->size;i++)
+	{
+		if(i%11==0)
+		{
+			//printf("\n");
+			pos=i;
+			strcpy(bin->arr[i].grptype,"STAR");
+			 
+		}
+		if((i+1)%11==0)
+		strcpy(bin->arr[i].grptype,"CLIQUE");
 	
 		cnt=0;
 		ptr=bin->arr[i].head;
@@ -870,119 +990,101 @@ void lsh(int **a,int *elements,int n1,graph *g)
 			ptr=ptr->next;
 		}
 
-		if(cnt>100)
+		if(cnt>=10 && cnt<=30 )
 		{
 			nptr=bin->arr[i].head;
+			pos2=pos;
 			nvsize=cnt;
 		}
 
 		//printf("%d\t",cnt);
 		
 	}
+ 
 
-	cnt=0;
-	int nvarr[nvsize];
-	while(nptr!=NULL)
-	{
-		nvarr[cnt++]=nptr->vertex;
-		nptr=nptr->next;
-	}
-
-	quickSort(nvarr,0,nvsize-1);
-
-	/*printf("\nSort of %d subelements:\n",nvsize);
-
-	for(i=0;i<nvsize;i++)
-	printf("%d\n",nvarr[i]);*/
 	 
-	graph *sgraph=creategraph(nvsize);
-	
-	for(i=0;i<nvsize;i++)
+	 
+	FILE *files[11];
+	FILE *fp;
+
+	/*for(i=0;i<11;i++)
 	{
-		nptr=g->arr[nvarr[i]].head;
-		sgraph->arr[i].head=nptr;
+		char filename[20];
+		sprintf(filename,"group%d.txt",i);
+		files[i]=fopen(filename,"w");
 	}
 
-	/*printf("\nSTep 1:\n\n");
-	for(i=0;i<nvsize;i++)
-	{
-		ptr=sgraph->arr[i].head;
+	
 
-		printf("\n%d",nvarr[i]);
+	for(i=pos2;i<(pos2+11);i++)
+	{
+		ptr=bin->arr[i].head;
+		fp=files[i%11];
 		while(ptr!=NULL)
 		{
-			printf("->%d",ptr->vertex);
+			fprintf(fp,"%d\n",ptr->vertex);
 			ptr=ptr->next;
 		}
-		printf("\n");
+			 
+		fclose(fp);
+			 
+		
 	}*/
+	 
+	
+	
 
-	struct node *prevptr,*head;
-
-	for(i=0;i<nvsize;i++)
+	/*printf("\nScoring\n");
+	for(i=0;i<bin->size;i++)
 	{
-		ptr=sgraph->arr[i].head;
-		prevptr=NULL;
-
-		if(ptr->next==NULL ||ptr==NULL)
+		ptr=bin->arr[i].head;
+		if(ptr!=NULL)
 		{
-			struct node *tnode=ptr;
-			free(tnode);
-			sgraph->arr[i].head=NULL;
-		}
-		else{
-		head=ptr;
-		while(ptr!=NULL)
-		{
-			if(search(nvarr,0,nvsize-1,ptr->vertex)==-1)
+			while(ptr!=NULL)
 			{
-				if(prevptr==NULL)
-				{
-					struct node *tnode=ptr;
-					free(tnode);
-					ptr=ptr->next;
-					head=ptr;
-				}
-				else
-				{	
-					struct node *tptr=ptr;
-					prevptr->next=ptr->next;
-					free(tptr);
-					ptr=ptr->next;
-				}
-				
-			}
-			else
-		 	{
-				prevptr=ptr;
+				printf("%lf\t",ptr->score);
 				ptr=ptr->next;
 			}
-			
-		}
-
-		sgraph->arr[i].head=head;
-
+			printf("\n\n");
 		}
 	}
 
-	printf("##no of vertices=%d\n",nvsize);
-	//printf("\nSubgraph\n\n");
-	for(i=0;i<nvsize;i++)
+	printf("\nSTAR GROUPS\n");
+	for(i=0;i<bin->size;i++)
 	{
-		ptr=sgraph->arr[i].head;
-
-		//printf("\n%d->",nvarr[i]);
-
-		while(ptr!=NULL)
+		ptr=bin->arr[i].head;
+		if(strcmp(bin->arr[i].grptype,"STAR")==0 &&ptr!=NULL)
 		{
-			printf("%d\t%d\n",nvarr[i],ptr->vertex);
-			ptr=ptr->next;
-		}
-		//printf("\n");
-
-		ptr=NULL;
-	}
 			
+			while(ptr!=NULL)
+			{
+				printf("%d(%lf)\t",ptr->vertex,ptr->score);
+				ptr=ptr->next;
+			}
+			printf("\n");
+		}
+	}
+
+	printf("\nCLIQUE GROUPS\n");
+	for(i=0;i<bin->size;i++)
+	{
+		ptr=bin->arr[i].head;
+		if(strcmp(bin->arr[i].grptype,"CLIQUE")==0 &&ptr!=NULL)
+		{
+			
+			while(ptr!=NULL)
+			{
+				printf("%d(%lf)\t",ptr->vertex,ptr->score);
+				ptr=ptr->next;
+			}
+			printf("\n");
+		}
+	}*/
+		
+ 
+
+	 
+	
 
 
 	cpy->size=bin->size;
