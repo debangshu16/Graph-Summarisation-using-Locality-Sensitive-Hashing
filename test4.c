@@ -56,8 +56,11 @@ struct adjlist
 	int grp_no;
 
 	int  group;
-	double score;
+	
 	int flag;
+	double comp_score;
+	int is_supernode;
+	int lsh_group;
 };
 
 typedef struct graph
@@ -264,7 +267,7 @@ int main()
 	for(i=0;i<7;i++)
 	printf("%d-%d\t%d\n",i*10,i*10+10,dist[i]);
 
-	printf("\n No of nodes in 0 bin=%d\n",getno(bin->a[0].head));	 
+	//printf("\n No of nodes in 0 bin=%d\n",getno(bin->a[0].head));	 
 	
 	int visited[v];
 	int n1=0;
@@ -279,95 +282,106 @@ int main()
 	struct node *ptr,*nptr,*ptrs;
 
 	 
+	int k=0;
 
-	ptr=bin->a[0].head;
-	while(ptr!=NULL)
+	while(k<20)
 	{
-		if(visited[ptr->vertex]==0)
+		ptr=bin->a[k].head;
+		while(ptr!=NULL)
 		{
-			visited[ptr->vertex]=1;
-			n1++;
-			nptr=g->arr[ptr->vertex].head;
-			while(nptr!=NULL)
+			if(visited[ptr->vertex]==0)
 			{
-				if(!visited[nptr->vertex])
+				visited[ptr->vertex]=1;
+				n1++;
+				nptr=g->arr[ptr->vertex].head;
+				while(nptr!=NULL)
 				{
-					n1++;
-					visited[nptr->vertex]=1;
+					if(!visited[nptr->vertex])
+					{
+						n1++;
+						visited[nptr->vertex]=1;
+					}
+					nptr=nptr->next;
 				}
-				nptr=nptr->next;
-			}
 			
+			}
+			ptr=ptr->next;
 		}
-		ptr=ptr->next;
-	}
 
 	 
-	printf("\nLSH ON %d nodes\n",n1);
-	cnt=0;
+		printf("\nLSH ON %d nodes\n",n1);
+		cnt=0;
 	
-	struct adjmat adjmat;
+		struct adjmat adjmat;
 	
-	adjmat.mat=(int **)malloc(sizeof(int *)*n1);
-	for(i=0;i<n1;i++)
-	adjmat.mat[i]=(int *)malloc(sizeof(int)*n1);
+		adjmat.mat=(int **)malloc(sizeof(int *)*n1);
+		for(i=0;i<n1;i++)
+		adjmat.mat[i]=(int *)malloc(sizeof(int)*n1);
 
-	adjmat.n=n1;
+		adjmat.n=n1;
 
-	adjmat.elements=(int *)malloc(sizeof(int)*n1);
+		adjmat.elements=(int *)malloc(sizeof(int)*n1);
 
-	for(i=0;i<v;i++)
-	{
-		if(visited[i]==1)
+		for(i=0;i<v;i++)
 		{
-			adjmat.elements[cnt++]=i;
+			if(visited[i]==1)
+			{
+				adjmat.elements[cnt++]=i;
+			}
 		}
-	}
 
 	//for(i=0;i<adjmat.n;i++)
 	//printf("%d\n",adjmat.elements[i]);
 
-	for(i=0;i<n1;i++)
-	{
-		for(j=0;j<n1;j++)
-		adjmat.mat[i][j]=0;
-	}
+		for(i=0;i<n1;i++)
+		{
+			for(j=0;j<n1;j++)
+			adjmat.mat[i][j]=0;
+		}
 
 	
-	for(i=0;i<n1;i++)
-	{
-		ptr=g->arr[adjmat.elements[i]].head;
-		while(ptr!=NULL)
+		for(i=0;i<n1;i++)
 		{
-		
-			for(j=0;j<n1;j++)
+			ptr=g->arr[adjmat.elements[i]].head;
+			while(ptr!=NULL)
 			{
-				if(ptr->vertex==adjmat.elements[j])
+		
+				for(j=0;j<n1;j++)
 				{
-					adjmat.mat[i][j]=1;
-					break;
+					if(ptr->vertex==adjmat.elements[j])
+					{
+						adjmat.mat[i][j]=1;
+						break;
+					}
 				}
+				ptr=ptr->next;
 			}
-			ptr=ptr->next;
 		}
-	}
-	modv=v;
+		modv=v;
 	 
-	lsh(adjmat.mat,adjmat.elements,n1,g,0);
-	scoring_nodes(g);
+		lsh(adjmat.mat,adjmat.elements,n1,g,k);
+		scoring_nodes(g);
 
-	printf("\n Score B on the lsh nodes:\n");
+		for(i=0;i<g->v;i++)
+		{
+			if(g->arr[i].comp_score!=1)
+			visited[i]=0;
+			 
+		}
+		k++;
+	}
+	/*printf("\n Score B on the lsh nodes:\n");
 	for(i=0;i<g->v;i++)
 	{
 		if(visited[i]==1)
 		{
-			printf("%d\t%lf\n",i,g->arr[i].score);
+			printf("%d\t%lf\n",i,g->arr[i].comp_score);
 		}
-	}
+	}*/
 	//printf("\n 2nd last bin\n");
 	//print_graph_score(g,50,60);
 	//printf("\n Last bin\n");
-	//print_graph_score(g,0,1); 
+	print_graph_score(g,0,30); 
 	 
 }
 void print_graph_score(graph *g,int start,int finish)
@@ -377,7 +391,7 @@ void print_graph_score(graph *g,int start,int finish)
 	for(i=0;i<g->v;i++)
 	{
 		if(g->arr[i].bin_no>=start && g->arr[i].bin_no <finish)
-			printf("%d\t%lf\n",i,g->arr[i].score);
+			printf("%d\t%lf\n",i,g->arr[i].comp_score);
 		 
 	}
 }
@@ -397,7 +411,7 @@ void scoring_nodes(graph *g)
 			ptr=ptr->next;
 		}
 
-		g->arr[i].score=(double)cnt/g->arr[i].degree;
+		g->arr[i].comp_score=(double)cnt/g->arr[i].degree;
 		//printf("%lf\n",g->arr[i].score);
 	}
 }
@@ -948,14 +962,20 @@ void lsh(int **a,int *elements,int n1,graph *g,int bin_index)
 		}
 	}
 
-	for(i=0;i<bin->size;i++)   //setting compression flag to 1 for the nodes in a group
+	for(i=0;i<countg;i++)					    //setting compression flag to 1 for the nodes in a group
 	{
-		ptr=bin->arr[i].head;
-		while(ptr!=NULL)
+		j=i*11;
+		while(j<((i*11)+11))
 		{
-			g->arr[ptr->vertex].flag=1;
-			ptr=ptr->next;
-		}
+			ptr=bin->arr[j].head;
+			while(ptr!=NULL)
+			{
+				g->arr[ptr->vertex].flag=1;
+				g->arr[ptr->vertex].lsh_group=i;
+				ptr=ptr->next;
+			}
+			j++;
+		} 
 	}
 		 
 					
