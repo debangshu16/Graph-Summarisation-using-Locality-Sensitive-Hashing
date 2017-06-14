@@ -926,7 +926,7 @@ void lsh(int **a,int *elements,int n1,graph *g,int bin_index)
 		if(i%11==0)
 		{
 			 
-			//printf("\n");
+			printf("\n");
 			
 			if(i!=0)
 			{
@@ -938,7 +938,7 @@ void lsh(int **a,int *elements,int n1,graph *g,int bin_index)
 
 			cnt=0;
 		}
-		//printf("%d\t",getno(bin->arr[i].head));
+		printf("%d\t",getno(bin->arr[i].head));
 		if(bin->arr[i].head!=NULL)
 		{
 			cnt++;
@@ -1040,10 +1040,10 @@ void lsh(int **a,int *elements,int n1,graph *g,int bin_index)
 		}
 	}*/
 			
-	int dist[countg][7];
+	int dist[countg][max];
 	for(i=0;i<countg;i++)
 	{
-		for(j=0;j<7;j++)
+		for(j=0;j<max;j++)
 		dist[i][j]=0;
 	}
 	k=0;
@@ -1058,21 +1058,21 @@ void lsh(int **a,int *elements,int n1,graph *g,int bin_index)
 			ptr=bin->arr[i].head;
 			while(ptr!=NULL)
 			{
-				t=(g->arr[ptr->vertex].bin_no)/10;
+				t=g->arr[ptr->vertex].bin_no;
 				dist[k][t]++;
 				ptr=ptr->next;
 			}
 		
 	}
 	 
-	/*printf("\nDistribution\n");	 
+	printf("\nDistribution\n");	 
 	for(i=0;i<countg;i++)
 	{
-		for(j=0;j<7;j++)
+		for(j=0;j<max;j++)
 		printf("%d\t",dist[i][j]);
 
 		printf("\n");
-	}*/			
+	}			
 	 
 	cnt=0;
 	int nvsize,pos,pos2;
