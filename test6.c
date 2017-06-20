@@ -68,7 +68,6 @@ struct adjlist
 	double comp_score;
 
 	int is_supernode;
-	int lsh_group;
 	struct node *link_supernode;
 };
 struct adjmat
@@ -1156,7 +1155,9 @@ void form_supernodes(struct node *head,graph *g)
 {
 	struct node *ptr=head;
 	int cnt=0;
+	
 	struct link *q=(struct link *)malloc(sizeof(struct link));
+	q->link=NULL;
 	while(ptr!=NULL)
 	{
 		if(g->arr[ptr->vertex].comp_score==1)
