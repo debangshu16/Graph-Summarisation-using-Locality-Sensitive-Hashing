@@ -121,6 +121,11 @@ struct inter
 
 void lsh(int **,int *,int,graph *,int);
 struct adjmat* create_adjmat(struct bin *,graph *,int[],int);
+int getno(struct node *);
+int isPresent(struct node *,int);
+void form_superedge_zero_bin(struct bucket*,graph*,int);
+void form_supernodes(struct node*,graph *);
+ 
 
 struct node *newnode1(int v)
 {
@@ -162,7 +167,7 @@ void addedge(graph *g,int src,int dest)
 	g->arr[dest].head=newnode;
 	g->arr[dest].degree++;
 }
-struct link* addlink(struct link *head,int key)
+struct node* addlink(struct node *head,int key)
 {
 	struct node *new=newnode1(key);
 	new->next=head;
@@ -282,13 +287,13 @@ int main()
 	}	
 	
 	
-	for(i=0;i<max;i++)
+	/*for(i=0;i<max;i++)
 	{	
 		if(i!=0)
 		printf("%d-%d\t%d\n",i*10-10,i*10,dist[i]);
 		else 
 		printf("%d\t%d\n",i,dist[i]);
-	}
+	}*/
 
 	//printf("\n No of nodes in 0 bin=%d\n",getno(bin->a[0].head));	 
 	
@@ -318,7 +323,7 @@ int main()
 
 		
 			 
-		printf("\nLSH ON %d nodes\n",adjmat1->n1);
+		//printf("\nLSH ON %d nodes\n",adjmat1->n1);
 
 		 
 			
@@ -341,16 +346,35 @@ int main()
 	 
 	 
 	 
-	print_graph_score(g,0,max);
+	//print_graph_score(g,0,max);
 	cnt=0;
 	for(i=0;i<g->v;i++)
 	{
 		if(g->arr[i].comp_score==1)
 		cnt++;
 	}
-	printf("\n%lf nodes fully compressed\n",(double)cnt/g->v); 
+	 
+	 
+	/*for(i=g->v;i<(g->v+no_of_supernodes);i++)
+	{	
+		printf("\n\n%d \t",g->arr[i].id);
+		ptr=g->arr[i].head;
+		 
+		while(ptr!=NULL)
+		{
+			printf("->%d",ptr->vertex);
+			ptr=ptr->next;
+		}
+		ptr=NULL;
+		 
+	}*/
+
+	 
+	 
 	 
 }
+ 
+
 struct adjmat * create_adjmat(struct bin *bin,graph *g,int visited[],int k)
 {
 		int n1=0,i,j;
@@ -943,7 +967,7 @@ void lsh(int **a,int *elements,int n1,graph *g,int bin_index)
 		if(i%11==0)
 		{
 			 
-			printf("\n");
+			//printf("\n");
 			
 			if(i!=0)
 			{
@@ -955,7 +979,7 @@ void lsh(int **a,int *elements,int n1,graph *g,int bin_index)
 
 			cnt=0;
 		}
-		printf("%d\t",getno(bin->arr[i].head));
+		//printf("%d\t",getno(bin->arr[i].head));
 		if(bin->arr[i].head!=NULL)
 		{
 			cnt++;
@@ -1018,18 +1042,19 @@ void lsh(int **a,int *elements,int n1,graph *g,int bin_index)
 			while(ptr!=NULL)
 			{
 				g->arr[ptr->vertex].flag=1;
-				g->arr[ptr->vertex].lsh_group=i;
+				 
 				ptr=ptr->next;
 			}
 			j++;
 		} 
 	}
 	
-	scoring_nodes(g);		//compute compression scores	 
+	scoring_nodes(g);	//compute compression scores	 
+
+	form_superedge_zero_bin(bin,g,countg); 
 	
-	
-	form_supernodes(bin,g,countg);
-			
+	 
+	 
 										
 
 	/*double score_a,nscore;							//RESCORING NODES FROM 2ND TO 6TH BIN IF GROUP SCORE IS LOW
@@ -1098,7 +1123,71 @@ void lsh(int **a,int *elements,int n1,graph *g,int bin_index)
 	 
   
 }
-void form_supernodes(struct bucket *bin,graph *g,int countg)
+void form_superedge_zero_bin(struct bucket *bin,graph *g,int countg)
+{
+
+	int i,j;	
+	struct node *bptr,*lptr;
+	struct node *ptr; 
+	for(i=0;i<countg;i++)
+	{	
+				
+		j=i*11;
+		ptr=bin->arr[j].head;
+		form_supernodes(ptr,g);
+		lptr=g->arr[g->load].link_supernode;
+		while(lptr!=NULL)
+		{
+			bptr=g->arr[lptr->vertex].head;
+			while(bptr!=NULL)
+			{
+				if(!isPresent(g->arr[g->load].head,bptr->vertex))
+				addedge(g,g->load,bptr->vertex);
+				bptr=bptr->next;
+			}
+			lptr=lptr->next;
+		}
+		 
+		 
+	}
+}
+
+void form_supernodes(struct node *head,graph *g)
+{
+	struct node *ptr=head;
+	int cnt=0;
+	struct link *q=(struct link *)malloc(sizeof(struct link));
+	while(ptr!=NULL)
+	{
+		if(g->arr[ptr->vertex].comp_score==1)
+		{
+			cnt++;
+			q->link=addlink(q->link,ptr->vertex);
+					
+		}
+		ptr=ptr->next;
+	}
+	if(cnt>1)
+	{
+		if(g->load==g->size-1)
+		{
+			g->size=g->size*2;
+			g->arr=(struct adjlist *)realloc(g->arr,(sizeof(struct adjlist)*g->size));
+		}
+		g->load++;
+		g->arr[g->load].id=g->load;
+		g->arr[g->load].is_supernode=1;
+		g->arr[g->load].comp_score=0.0;
+		g->arr[g->load].link_supernode=q->link;
+		no_of_supernodes++;
+	}
+
+	q->link=NULL;
+	
+
+}
+
+/*void form_supernodes(struct bucket *bin,graph *g,int countg)
 {
 	int i,j,cnt;
 	struct link *q=(struct link *)malloc(sizeof(struct link));
@@ -1122,26 +1211,27 @@ void form_supernodes(struct bucket *bin,graph *g,int countg)
 				}
 				ptr=ptr->next;
 			}
+			if(cnt>1)
+			{
+				if(g->load==g->size-1)
+				{
+					g->size=g->size*2;
+					g->arr=(struct adjlist *)realloc(g->arr,(sizeof(struct adjlist)*g->size));
+				}
+				g->load++;
+				g->arr[g->load].id=g->load;
+				g->arr[g->load].is_supernode=1;
+				g->arr[g->load].comp_score=0.0;
+				g->arr[g->load].link_supernode=q->link;
+				no_of_supernodes++;
+			
+			}
+			q->link=NULL;
 			j++;
 		}
-		if(cnt>1)
-		{
-			if(g->load==g->size-1)
-			{
-				g->size=g->size*2;
-				g->arr=(struct adjlist *)realloc(g->arr,(sizeof(struct adjlist)*g->size));
-			}
-			g->load++;
-			g->arr[g->load].id=g->size;
-			g->arr[g->load].is_supernode=1;
-			g->arr[g->load].comp_score=0.0;
-			g->arr[g->load].link_supernode=q->link;
-			no_of_supernodes++;
-			
-		}
-		q->link=NULL;
+		
 	}
-}
+}*/
 struct inter *intersection(struct inter *mat,int *a,int pos,int n1)
 {
 	int i,k,xor1,flaga=0,p1;
