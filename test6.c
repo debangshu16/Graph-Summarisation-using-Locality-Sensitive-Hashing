@@ -75,6 +75,7 @@ struct adjlist
 	int has_superedge;
 
 	int colour;
+	float error;
 };
 struct adjmat
 {
@@ -131,6 +132,7 @@ int isPresent(struct node *,int);
 void form_superedge_zero_bin(struct bucket*,graph*,int);
 void form_supernodes(struct node*,graph *);
 void form_superedge_last3(struct bucket *,graph *,int);
+float calerror_bipartite(graph *,int,int);
  
 
 struct node *newnode1(int v)
@@ -360,7 +362,7 @@ int main()
 		 	 
 	}
 
-	/*int list[]={2539,2084,2630,2164};
+	/*int list[]={2629,2498};
 	for(i=0;i<(sizeof(list)/sizeof(list[0]));i++)
 	{
 		tmpp=g->arr[list[i]].head;
@@ -374,35 +376,48 @@ int main()
 	 
 	 
 	//print_graph_score(g,0,max);
-	cnt=0;
-	for(i=0;i<g->v;i++)
-	{
-		if(g->arr[i].comp_score==1)
-		cnt++;
-	}
 	 
 	 
+	double counta=0,countb=0;
+
 	for(i=g->v;i<(g->v+no_of_supernodes);i++)
 	{	
-		printf("\n\n%d \t",g->arr[i].id);
 		ptr=g->arr[i].head;
-		printf("Members:\t");
-		tmpp=g->arr[i].link_supernode;
-		while(tmpp!=NULL)
+		/*if(ptr!=NULL)	// && getno(g->arr[i].link_supernode)>2)
 		{
-			printf("%d,",tmpp->vertex);
-			tmpp=tmpp->next;
-		}
-		printf("\t\tAdjacencies:\t"); 
-		while(ptr!=NULL)
+			printf("\n\n%d \t",g->arr[i].id);
+		
+		
+			printf("Members:\t");
+			tmpp=g->arr[i].link_supernode;
+			while(tmpp!=NULL)
+			{
+				printf("%d,",tmpp->vertex);
+				tmpp=tmpp->next;
+			}
+			printf("\t\tAdjacencies:\t"); 
+			while(ptr!=NULL)
+			{
+				printf("->%d",ptr->vertex);
+				ptr=ptr->next;
+			}
+			ptr=NULL;
+
+			printf("\t ERROR =%f %%",(g->arr[i].error*100));
+		}*/
+
+		if(ptr!=NULL)
 		{
-			printf("->%d",ptr->vertex);
-			ptr=ptr->next;
+			if(g->arr[i].error >= 0.50)
+			counta++;
+
+			countb++;
 		}
-		ptr=NULL;
-		 
+			 
 	}
 
+	printf("Total false results=%lf ",(counta/countb)*100);
+	printf(" Out of %lf groups",countb);
 	//print(g);
 
 	 
@@ -997,7 +1012,7 @@ void lsh(int **a,int *elements,int n1,graph *g,int bin_index)
 	
 	cnt=0; 
 	int gd=0,sgd=0,gcount=0;
-
+	//printf("\n Distribution for degree bin %d",bin_index);
 	for(i=0;i<bin->size;i++)
 	{
 		if(i%11==0)
@@ -1043,7 +1058,7 @@ void lsh(int **a,int *elements,int n1,graph *g,int bin_index)
 	//for(i=0;i<countg;i++)
 	//printf("%lf\n",bin->arr[(i*11)].grp_score);
 
-	
+	ptr=NULL;	
 	for(i=0;i<countg;i++)
 	{
 		if(bin->arr[(i*11)].grp_score >=0.5)
@@ -1053,9 +1068,10 @@ void lsh(int **a,int *elements,int n1,graph *g,int bin_index)
 			{
 				ptr=bin->arr[j].head;
 				cnt=0;
+				 
 				while(ptr!=NULL)
 				{
-					if(g->arr[ptr->vertex].bin_no==bin_index)
+					if(g->arr[ptr->vertex].bin_no == bin_index)
 					cnt++;
 					ptr=ptr->next;
 				}
@@ -1064,11 +1080,13 @@ void lsh(int **a,int *elements,int n1,graph *g,int bin_index)
 					
 					bin->arr[j].head=NULL;
 				}
+				 
 				j++;
 			}
 		}
 	}
 
+	ptr=NULL;
 	for(i=0;i<countg;i++)					    //setting compression flag to 1 for the nodes in a group
 	{
 		j=i*11;
@@ -1087,19 +1105,24 @@ void lsh(int **a,int *elements,int n1,graph *g,int bin_index)
 	
 	scoring_nodes(g);	//compute compression scores	 
 
+	 
+	fflush(stdin); 
 	//form_superedge_zero_bin(bin,g,countg); 
 	form_superedge_last3(bin,g,countg);
+	
 	 
 	/*for(i=0;i<countg;i++)
 	{
+		 
 		cnt=form_bipartite(bin,g,i);
 		if(cnt!=-1)
 		{
-			if(!isPresent(g->arr[g->load-1].head,g->load))
 			addedge(g,(g->load)-1,g->load);
+			g->arr[(g->load)-1].error=g->arr[g->load].error=calerror_bipartite(g,g->load,(g->arr[g->load].head)->vertex);
 		}
+		 
 		for(j=0;j<g->v;j++)
-		g->arr[j].colour=-1;
+		g->arr[j].colour=UNCOLOURED;
 	}*/
 		
 	 
@@ -1134,7 +1157,7 @@ void lsh(int **a,int *elements,int n1,graph *g,int bin_index)
 		}
 	}*/
 			
-	int dist[countg][max];
+	/*int dist[countg][max];
 	for(i=0;i<countg;i++)
 	{
 		for(j=0;j<max;j++)
@@ -1159,7 +1182,7 @@ void lsh(int **a,int *elements,int n1,graph *g,int bin_index)
 		
 	}
 	 
-	/*printf("\nDistribution\n");	 
+	printf("\nDistribution\n");	 
 	for(i=0;i<countg;i++)
 	{
 		for(j=0;j<max;j++)
@@ -1171,17 +1194,39 @@ void lsh(int **a,int *elements,int n1,graph *g,int bin_index)
 	 
   
 }
+float calerror_bipartite(graph *g,int a,int b)
+{
+	int count=0;
+	struct node *ptr=g->arr[a].link_supernode;
+	struct node *nptr=g->arr[b].link_supernode;
+
+	int m=getno(ptr);
+	int n=getno(nptr);
+	
+	while(ptr!=NULL)
+	{
+		while(nptr!=NULL)
+		{
+			if(!isPresent(g->arr[ptr->vertex].head,nptr->vertex))
+				count++;
+			nptr=nptr->next;
+		}
+		ptr=ptr->next;
+	}
+	return (float)count/(m*n);
+}
 int form_bipartite(struct bucket *bin,graph *g,int group_no)
 {
 	int i=group_no,j;
 	
 	struct node *ptr,*group=NULL,*nptr;
 	struct node *snode1=NULL,*snode2=NULL;
-	j=i*11+1;
+	j=(i*11)+1;
 	while(j<(i*11+8))
 	{
 		ptr=bin->arr[j].head;
-		group=merge(group,ptr);
+		if(ptr!=NULL)
+			group=merge(group,ptr);
 		j++;
 	}
 		
@@ -1190,20 +1235,20 @@ int form_bipartite(struct bucket *bin,graph *g,int group_no)
 	
 	while(ptr!=NULL)
 	{
-		if(g->arr[ptr->vertex].colour==-1)
-		g->arr[ptr->vertex].colour==1;
+		if(g->arr[ptr->vertex].colour==UNCOLOURED)
+		g->arr[ptr->vertex].colour==RED;
 
 		nptr=g->arr[ptr->vertex].head;
 		while(nptr!=NULL)
 		{
 			if(isPresent(group,nptr->vertex))
 			{
-				if(g->arr[nptr->vertex].colour==-1)
+				if(g->arr[nptr->vertex].colour==UNCOLOURED)
 				{
-					if(g->arr[ptr->vertex].colour==1)
-						g->arr[nptr->vertex].colour=0;
+					if(g->arr[ptr->vertex].colour==RED)
+						g->arr[nptr->vertex].colour=BLUE;
 					else
-						g->arr[nptr->vertex].colour=1;
+						g->arr[nptr->vertex].colour=RED;
 				}
 				else if(g->arr[ptr->vertex].colour==g->arr[nptr->vertex].colour)
 					return -1;
@@ -1218,9 +1263,9 @@ int form_bipartite(struct bucket *bin,graph *g,int group_no)
 	ptr=group;
 	while(ptr!=NULL)
 	{
-		if(g->arr[ptr->vertex].colour==1)
+		if(g->arr[ptr->vertex].colour==RED)
 		snode1=addlink(snode1,ptr->vertex);
-		else if(g->arr[ptr->vertex].colour==0)
+		else if(g->arr[ptr->vertex].colour==BLUE)
 		snode2=addlink(snode2,ptr->vertex);
 
 		ptr=ptr->next;
@@ -1347,8 +1392,11 @@ void form_superedge_zero_bin(struct bucket *bin,graph *g,int countg)
 }
 void form_superedge_last3(struct bucket *bin,graph* g,int countg)
 {
-	struct node *ptr;
+	struct node *ptr,*nptr;
 	int i,j;
+	float m=0,n=0;
+	float M,N;
+	
 	for(i=0;i<countg;i++)
 	{
 		j=(i*11)+10;
@@ -1358,6 +1406,30 @@ void form_superedge_last3(struct bucket *bin,graph* g,int countg)
 		form_supernodes(ptr,g);
 		if(!isPresent(g->arr[g->load].head,g->load))
 			addedge(g,g->load,g->load);
+
+		ptr=g->arr[g->load].link_supernode;
+		n=(float)getno(g->arr[g->load].link_supernode);
+
+		N=n*(n-1)/2.0;
+
+		while(ptr!=NULL)
+		{
+			nptr=g->arr[g->load].link_supernode;
+			while(nptr!=NULL)
+			{
+				if(isPresent(g->arr[ptr->vertex].head,nptr->vertex))
+				m++;
+
+				nptr=nptr->next;
+			}
+			ptr=ptr->next;
+		}
+
+		M=m/2.0;
+		g->arr[g->load].error=(N-M)/N;
+
+		m=0;
+		n=0;
 	}
 }
 void form_supernodes(struct node *head,graph *g)
@@ -1397,51 +1469,7 @@ void form_supernodes(struct node *head,graph *g)
 
 }
 
-/*void form_supernodes(struct bucket *bin,graph *g,int countg)
-{
-	int i,j,cnt;
-	struct link *q=(struct link *)malloc(sizeof(struct link));
-	struct node *ptr;
-	for(i=0;i<countg;i++)
-	{
-		j=i*11;
-		cnt=0;
-		
-		q->link=NULL; 
-		while(j<(i*11+11))
-		{
-			ptr=bin->arr[j].head;
-			while(ptr!=NULL)
-			{
-				if(g->arr[ptr->vertex].comp_score==1)
-				{
-					cnt++;
-					q->link=addlink(q->link,ptr->vertex);
-					
-				}
-				ptr=ptr->next;
-			}
-			if(cnt>1)
-			{
-				if(g->load==g->size-1)
-				{
-					g->size=g->size*2;
-					g->arr=(struct adjlist *)realloc(g->arr,(sizeof(struct adjlist)*g->size));
-				}
-				g->load++;
-				g->arr[g->load].id=g->load;
-				g->arr[g->load].is_supernode=1;
-				g->arr[g->load].comp_score=0.0;
-				g->arr[g->load].link_supernode=q->link;
-				no_of_supernodes++;
-			
-			}
-			q->link=NULL;
-			j++;
-		}
-		
-	}
-}*/
+ 
 struct inter *intersection(struct inter *mat,int *a,int pos,int n1)
 {
 	int i,k,xor1,flaga=0,p1;
