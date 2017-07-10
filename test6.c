@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <malloc.h>
 #include <math.h>
@@ -188,6 +189,46 @@ struct node* addlink(struct node *head,int key)
 	head=new;
 	return head;
 }
+struct que
+{
+	struct node *rear,*front;
+};
+struct que * createque()
+{
+	struct que* q=(struct que *)malloc(sizeof(struct que));
+	q->rear=q->front=NULL;
+	return q;
+}
+void enque(struct que *q,int k)
+{
+	struct node *temp=newnode1(k);
+	if(q->rear==NULL)
+	{
+		q->rear=q->front=temp;
+		return;
+	}
+	q->rear->next=temp;
+	q->rear=temp;
+}
+struct node *deque(struct que *q)
+{
+	if(q->front==NULL)
+	return NULL;
+	struct node *temp=q->front;
+	q->front=q->front->next;
+	
+	if(q->front==NULL)
+	q->rear=NULL;
+
+	return temp;
+}
+bool isempty(struct que *q)
+{
+	if(q->rear==NULL)
+	return true;
+	else
+	return false;
+} 
 void print(graph *g)
 {
 	int i;
@@ -349,7 +390,7 @@ int main()
 		lsh(adjmat1->mat,adjmat1->elements,adjmat1->n1,g,k);
 		 
 		  
-
+		fflush(stdin);
 		for(i=0;i<g->v;i++)
 		{
 			 
@@ -362,7 +403,7 @@ int main()
 		 	 
 	}
 
-	/*int list[]={2629,2498};
+	/*int list[]={3088,2995};
 	for(i=0;i<(sizeof(list)/sizeof(list[0]));i++)
 	{
 		tmpp=g->arr[list[i]].head;
@@ -378,12 +419,12 @@ int main()
 	//print_graph_score(g,0,max);
 	 
 	 
-	double counta=0,countb=0;
-
+	 
+	double counta,countb; 
 	for(i=g->v;i<(g->v+no_of_supernodes);i++)
 	{	
 		ptr=g->arr[i].head;
-		/*if(ptr!=NULL)	// && getno(g->arr[i].link_supernode)>2)
+		if(ptr!=NULL) //&& getno(g->arr[i].link_supernode)>2)
 		{
 			printf("\n\n%d \t",g->arr[i].id);
 		
@@ -404,20 +445,21 @@ int main()
 			ptr=NULL;
 
 			printf("\t ERROR =%f %%",(g->arr[i].error*100));
-		}*/
+		}
 
-		if(ptr!=NULL)
-		{
-			if(g->arr[i].error >= 0.50)
+		//if(ptr!=NULL &&getno(g->arr[i].link_supernode)>2)
+		//{
+			if(g->arr[i].error >=0.50)
 			counta++;
 
 			countb++;
-		}
+		//}
+		 
 			 
 	}
 
-	printf("Total false results=%lf ",(counta/countb)*100);
-	printf(" Out of %lf groups",countb);
+	printf("\n\n\n\n ERROR =%lf %%\n%lfout of %lf groups",(counta/countb)*100,counta,countb);
+ 
 	//print(g);
 
 	 
@@ -953,7 +995,7 @@ void lsh(int **a,int *elements,int n1,graph *g,int bin_index)
 		{
 			while(ptr!=NULL)
 			{
-				if(g->arr[ptr->vertex].flag==0)
+				//if(g->arr[ptr->vertex].flag==0)
 				//g->arr[ptr->vertex].flag=1;
 				s1=getno(getIntersection(g->arr[ptr->vertex].head,cpybucket->arr[i].head));
 				ptr->score=(double)s1/(cpybucket->arr[i].grplength-1);
@@ -1107,23 +1149,26 @@ void lsh(int **a,int *elements,int n1,graph *g,int bin_index)
 
 	 
 	fflush(stdin); 
-	//form_superedge_zero_bin(bin,g,countg); 
+	form_superedge_zero_bin(bin,g,countg); 
 	form_superedge_last3(bin,g,countg);
 	
 	 
-	/*for(i=0;i<countg;i++)
+	for(i=0;i<countg;i++)
 	{
 		 
 		cnt=form_bipartite(bin,g,i);
 		if(cnt!=-1)
 		{
-			addedge(g,(g->load)-1,g->load);
-			g->arr[(g->load)-1].error=g->arr[g->load].error=calerror_bipartite(g,g->load,(g->arr[g->load].head)->vertex);
+			if(!isPresent(g->arr[g->load].head,g->load-1))
+			{	
+				addedge(g,(g->load)-1,g->load);
+				g->arr[(g->load)-1].error=g->arr[g->load].error=calerror_bipartite(g,g->load,(g->arr[g->load].head)->vertex);
+			}
 		}
 		 
 		for(j=0;j<g->v;j++)
 		g->arr[j].colour=UNCOLOURED;
-	}*/
+	}
 		
 	 
 										
@@ -1205,6 +1250,7 @@ float calerror_bipartite(graph *g,int a,int b)
 	
 	while(ptr!=NULL)
 	{
+		nptr=g->arr[b].link_supernode;
 		while(nptr!=NULL)
 		{
 			if(!isPresent(g->arr[ptr->vertex].head,nptr->vertex))
@@ -1214,6 +1260,42 @@ float calerror_bipartite(graph *g,int a,int b)
 		ptr=ptr->next;
 	}
 	return (float)count/(m*n);
+}
+bool bfscolor(struct node *group,graph *g,int source)
+{
+	struct node *ptr,*nptr; 
+	g->arr[source].colour=RED;
+	struct que *q=createque();
+	enque(q,source);
+
+	while(!isempty(q))
+	{
+		ptr=deque(q);
+		nptr=g->arr[ptr->vertex].head;
+
+		while(nptr!=NULL)
+		{
+			
+			if(isPresent(group,nptr->vertex))
+			{
+				if(g->arr[nptr->vertex].colour == UNCOLOURED)
+				{
+					enque(q,nptr->vertex);
+					if(g->arr[ptr->vertex].colour==RED)
+						g->arr[nptr->vertex].colour=BLUE;
+					else
+						g->arr[nptr->vertex].colour=RED;
+				}
+				else if(g->arr[ptr->vertex].colour == g->arr[nptr->vertex].colour)
+					return false;
+			}
+			nptr=nptr->next;
+
+		}
+
+	}
+	
+	return true;
 }
 int form_bipartite(struct bucket *bin,graph *g,int group_no)
 {
@@ -1231,115 +1313,106 @@ int form_bipartite(struct bucket *bin,graph *g,int group_no)
 	}
 		
 	 
-	ptr=group;
-	
-	while(ptr!=NULL)
+/*	ptr=group;
+	bool status=true;
+	while(ptr!=NULL && status==true)
 	{
 		if(g->arr[ptr->vertex].colour==UNCOLOURED)
-		g->arr[ptr->vertex].colour==RED;
+			status=bfscolor(group,g,ptr->vertex);
 
-		nptr=g->arr[ptr->vertex].head;
-		while(nptr!=NULL)
-		{
-			if(isPresent(group,nptr->vertex))
-			{
-				if(g->arr[nptr->vertex].colour==UNCOLOURED)
-				{
-					if(g->arr[ptr->vertex].colour==RED)
-						g->arr[nptr->vertex].colour=BLUE;
-					else
-						g->arr[nptr->vertex].colour=RED;
-				}
-				else if(g->arr[ptr->vertex].colour==g->arr[nptr->vertex].colour)
-					return -1;
-			}
-			nptr=nptr->next;
-		}
-				
 		ptr=ptr->next;
-	}
+	}*/
 
-	
 	ptr=group;
-	while(ptr!=NULL)
-	{
-		if(g->arr[ptr->vertex].colour==RED)
-		snode1=addlink(snode1,ptr->vertex);
-		else if(g->arr[ptr->vertex].colour==BLUE)
-		snode2=addlink(snode2,ptr->vertex);
-
-		ptr=ptr->next;
-	}
 	
-	struct link *q=(struct link *)malloc(sizeof(struct link));
-	struct link *q2=(struct link *)malloc(sizeof(struct link));
-	q->link=NULL;
-	q2->link=NULL;
-
-	ptr=snode1;
-
-	int cnt=0;
-
-	while(ptr!=NULL)
-	{
-		if(g->arr[ptr->vertex].comp_score==1)
-		{
-			cnt++;
-			q->link=addlink(q->link,ptr->vertex);
-					
-		}
-		ptr=ptr->next;
-	}
-	if(cnt>1)
-	{
-		
-		if(g->load==g->size-1)
-		{
-			g->size=g->size*2;
-			g->arr=(struct adjlist *)realloc(g->arr,(sizeof(struct adjlist)*g->size));
-		}
-		g->load++;
-		g->arr[g->load].id=g->load;
-		g->arr[g->load].is_supernode=1;
-		g->arr[g->load].comp_score=0.0;
-		g->arr[g->load].link_supernode=q->link;
-		no_of_supernodes++;
-		
-	}
-
-	 
-
-	cnt=0;
-	ptr=snode2;
-	while(ptr!=NULL)
-	{
-		if(g->arr[ptr->vertex].comp_score==1)
-		{
-			cnt++;
-			q2->link=addlink(q2->link,ptr->vertex);
-					
-		}
-		ptr=ptr->next;
-	}
-	if(cnt>1)
-	{
-		
-		if(g->load==g->size-1)
-		{
-			g->size=g->size*2;
-			g->arr=(struct adjlist *)realloc(g->arr,(sizeof(struct adjlist)*g->size));
-		}
-		g->load++;
-		g->arr[g->load].id=g->load;
-		g->arr[g->load].is_supernode=1;
-		g->arr[g->load].comp_score=0.0;
-		g->arr[g->load].link_supernode=q2->link;
-		no_of_supernodes++;
-	}
-
-	 
 	
-	if(getno(q->link)<=1 || getno(q2->link)<=1)
+	if(group!=NULL && bfscolor(group,g,group->vertex))
+	{
+	
+	
+		while(ptr!=NULL)
+		{
+			if(g->arr[ptr->vertex].colour==RED)
+			snode1=addlink(snode1,ptr->vertex);
+			else if(g->arr[ptr->vertex].colour==BLUE)
+			snode2=addlink(snode2,ptr->vertex);
+
+			ptr=ptr->next;
+		}
+	
+		struct link *q=(struct link *)malloc(sizeof(struct link));
+		struct link *q2=(struct link *)malloc(sizeof(struct link));
+		q->link=NULL;
+		q2->link=NULL;
+
+		ptr=snode1;
+
+		int cnt=0;
+
+		while(ptr!=NULL)
+		{
+			if(g->arr[ptr->vertex].comp_score==1)
+			{
+				cnt++;
+				q->link=addlink(q->link,ptr->vertex);
+					
+			}
+			ptr=ptr->next;
+		}
+		if(cnt>1)
+		{
+		
+			if(g->load==g->size-1)
+			{
+				g->size=g->size*2;
+				g->arr=(struct adjlist *)realloc(g->arr,(sizeof(struct adjlist)*g->size));
+			}
+			g->load++;
+			g->arr[g->load].id=g->load;
+			g->arr[g->load].is_supernode=1;
+			g->arr[g->load].comp_score=0.0;
+			g->arr[g->load].link_supernode=q->link;
+			no_of_supernodes++;
+		
+		}
+
+		 
+
+		cnt=0;
+		ptr=snode2;
+		while(ptr!=NULL)
+		{
+			if(g->arr[ptr->vertex].comp_score==1)
+			{
+				cnt++;
+				q2->link=addlink(q2->link,ptr->vertex);
+					
+			}
+			ptr=ptr->next;
+		}
+		if(cnt>1)
+		{
+		
+			if(g->load==g->size-1)
+			{
+				g->size=g->size*2;
+				g->arr=(struct adjlist *)realloc(g->arr,(sizeof(struct adjlist)*g->size));
+			}
+			g->load++;
+			g->arr[g->load].id=g->load;
+			g->arr[g->load].is_supernode=1;
+			g->arr[g->load].comp_score=0.0;
+			g->arr[g->load].link_supernode=q2->link;
+			no_of_supernodes++;
+		}
+
+		 
+	
+		if(getno(q->link)<=1 || getno(q2->link)<=1)
+		return -1;
+
+	}
+	else
 	return -1;
 	
 }
