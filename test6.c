@@ -403,7 +403,7 @@ int main()
 		 	 
 	}
 
-	/*int list[]={3088,2995};
+	int list[]={3949,3437,3446,3490,3549,3863};
 	for(i=0;i<(sizeof(list)/sizeof(list[0]));i++)
 	{
 		tmpp=g->arr[list[i]].head;
@@ -413,14 +413,14 @@ int main()
 			printf(",%d",tmpp->vertex);
 			tmpp=tmpp->next;
 		}
-	}*/
-	 
+	}
+	
 	 
 	//print_graph_score(g,0,max);
 	 
 	 
 	 
-	double counta,countb; 
+	/*double counta,countb; 
 	for(i=g->v;i<(g->v+no_of_supernodes);i++)
 	{	
 		ptr=g->arr[i].head;
@@ -462,8 +462,8 @@ int main()
  
 	//print(g);
 
-	 
-	 
+	*/ 
+	  
 	 
 }
  
@@ -1033,11 +1033,11 @@ void lsh(int **a,int *elements,int n1,graph *g,int bin_index)
 			{
 				if(ptr->score==0)
 				t=cnt;
-				else if(ptr->score < 0.1)
-				t=cnt+1;
+				else if(ptr->score==1)
+				t=cnt+10;
 				else
 				t=(int)(ptr->score*10)+1+cnt;
-
+ 
 				tnode=newnode1(ptr->vertex);
 				tnode->score=ptr->score;
 				tnode->next=bin->arr[t].head;
@@ -1051,7 +1051,7 @@ void lsh(int **a,int *elements,int n1,graph *g,int bin_index)
 			cnt+=11;
 		}
 	}
-	
+	 
 	cnt=0; 
 	int gd=0,sgd=0,gcount=0;
 	//printf("\n Distribution for degree bin %d",bin_index);
@@ -1150,10 +1150,10 @@ void lsh(int **a,int *elements,int n1,graph *g,int bin_index)
 	 
 	fflush(stdin); 
 	form_superedge_zero_bin(bin,g,countg); 
-	form_superedge_last3(bin,g,countg);
+	//form_superedge_last3(bin,g,countg);
 	
 	 
-	for(i=0;i<countg;i++)
+	/*for(i=0;i<countg;i++)
 	{
 		 
 		cnt=form_bipartite(bin,g,i);
@@ -1168,7 +1168,7 @@ void lsh(int **a,int *elements,int n1,graph *g,int bin_index)
 		 
 		for(j=0;j<g->v;j++)
 		g->arr[j].colour=UNCOLOURED;
-	}
+	}*/
 		
 	 
 										
