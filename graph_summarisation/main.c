@@ -152,12 +152,12 @@ int main(int argc,char* argv[])
 		 	 
 	}
 	
-	/*int choice=atoi(argv[4]);
+	int choice=atoi(argv[4]);
 	if(choice==1)
 		test(g);
 	else
 	{
-	 */	 
+	 	 
 		double counta,countb; 
 		for(i=g->v;i<(g->v+no_of_supernodes);i++)
 		{	
@@ -200,7 +200,7 @@ int main(int argc,char* argv[])
 	 
 		//print(g); 
 
-	//}
+	}
 
 	 
 	   

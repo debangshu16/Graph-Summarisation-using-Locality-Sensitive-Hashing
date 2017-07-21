@@ -83,12 +83,9 @@ void form_supernodes(struct node *head,graph *g)
 	q->link=NULL;
 	while(ptr!=NULL)
 	{
-		if(g->arr[ptr->vertex].comp_score==1)
-		{
-			cnt++;
-			q->link=addlink(q->link,ptr->vertex);
-					
-		}
+		cnt++;
+		q->link=addlink(q->link,ptr->vertex);
+		 
 		ptr=ptr->next;
 	}
 	if(cnt>1)
@@ -222,12 +219,10 @@ int form_bipartite(struct bucket *bin,graph *g,int group_no)
 
 		while(ptr!=NULL)
 		{
-			if(g->arr[ptr->vertex].comp_score==1)
-			{
-				cnt++;
-				q->link=addlink(q->link,ptr->vertex);
+			cnt++;
+			q->link=addlink(q->link,ptr->vertex);
 					
-			}
+			
 			ptr=ptr->next;
 		}
 		if(cnt>1)
@@ -253,12 +248,10 @@ int form_bipartite(struct bucket *bin,graph *g,int group_no)
 		ptr=snode2;
 		while(ptr!=NULL)
 		{
-			if(g->arr[ptr->vertex].comp_score==1)
-			{
-				cnt++;
-				q2->link=addlink(q2->link,ptr->vertex);
+			cnt++;
+			q2->link=addlink(q2->link,ptr->vertex);
 					
-			}
+			
 			ptr=ptr->next;
 		}
 		if(cnt>1)

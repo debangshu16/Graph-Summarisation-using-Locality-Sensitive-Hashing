@@ -606,11 +606,11 @@ void lsh(int **a,int *elements,int n1,graph *g,int bin_index)
 
 	 
 	fflush(stdin); 
-	form_superedge_zero_bin(bin,g,countg); 
+	//form_superedge_zero_bin(bin,g,countg); 
 	form_superedge_last3(bin,g,countg);
 	
 	 
-	for(i=0;i<countg;i++)
+	/*for(i=0;i<countg;i++)
 	{
 		 
 		cnt=form_bipartite(bin,g,i);
@@ -625,7 +625,7 @@ void lsh(int **a,int *elements,int n1,graph *g,int bin_index)
 		 
 		for(j=0;j<g->v;j++)
 		g->arr[j].colour=UNCOLOURED;
-	}
+	}*/
 							
   
   
