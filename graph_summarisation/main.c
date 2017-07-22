@@ -183,20 +183,20 @@ int main(int argc,char* argv[])
 				ptr=NULL;
 
 				printf("\t ERROR =%f %%",(g->arr[i].error*100));
+				if(g->arr[i].error >0)
+				{
+					printf("\t EDGE CORRECTION:");
+					for(k=0;k<g->arr[i].no_of_missing_edges;k++)
+					printf("%d-%d, ",g->arr[i].correction[k]->source,g->arr[i].correction[k]->dest);
+				}
 			}
 
-			//if(ptr!=NULL &&getno(g->arr[i].link_supernode)>2)
-			//{
-				if(g->arr[i].error >=0.50)
-				counta++;
-
-				countb++;
-			//}
+			 
 			 
 				 
 		}
 
-		printf("\n\n\n\n ERROR =%lf %%\n%lfout of %lf groups",(counta/countb)*100,counta,countb);
+		 
 	 
 		//print(g); 
 

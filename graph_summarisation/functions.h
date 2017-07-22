@@ -22,6 +22,12 @@ struct node
 	double score;
 	struct node *next;
 };
+struct edge
+{
+	int source;
+	int dest;
+};
+ 
 struct link
 {
 	struct node *link;
@@ -49,7 +55,11 @@ struct adjlist
 	int is_supernode;
 	struct node *link_supernode;
 	int has_superedge;
-
+	struct edge_correction *edges;
+	int no_of_missing_edges;
+	struct edge **correction;
+	  
+	
 	int colour;
 	float error;
 };

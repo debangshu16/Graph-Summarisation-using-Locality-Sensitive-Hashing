@@ -35,9 +35,10 @@ void form_superedge_zero_bin(struct bucket *bin,graph *g,int countg)
 void form_superedge_last3(struct bucket *bin,graph* g,int countg)
 {
 	struct node *ptr,*nptr;
-	int i,j;
+	int i,j,k;
 	float m=0,n=0;
 	float M,N;
+	int index;
 	
 	for(i=0;i<countg;i++)
 	{
@@ -69,9 +70,35 @@ void form_superedge_last3(struct bucket *bin,graph* g,int countg)
 
 		M=m/2.0;
 		g->arr[g->load].error=(N-M)/N;
+		index=0;
+		g->arr[g->load].no_of_missing_edges=(N-M)*2;
+		ptr=g->arr[g->load].link_supernode;
 
+		g->arr[g->load].correction=(struct edge **)malloc(sizeof(struct edge *)*(N-M)*2);
+		
+		for(k=0;k<(N-M)*2;k++)
+		g->arr[g->load].correction[k]=(struct edge *)malloc(sizeof(struct edge));
+
+		while(ptr!=NULL)
+		{
+			nptr=g->arr[g->load].link_supernode;
+			while(nptr!=NULL)
+			{
+				if(!isPresent(g->arr[ptr->vertex].head,nptr->vertex) && ptr->vertex!=nptr->vertex)
+				{
+					g->arr[g->load].correction[index]->source=ptr->vertex;
+					g->arr[g->load].correction[index]->dest=nptr->vertex;
+					index++;
+				}
+				
+
+				nptr=nptr->next;
+			}
+			ptr=ptr->next;
+		}
 		m=0;
 		n=0;
+		
 	}
 }
 void form_supernodes(struct node *head,graph *g)
@@ -109,7 +136,8 @@ void form_supernodes(struct node *head,graph *g)
 }
 float calerror_bipartite(graph *g,int a,int b)
 {
-	int count=0;
+	int count=0,i;
+	int index=0;
 	struct node *ptr=g->arr[a].link_supernode;
 	struct node *nptr=g->arr[b].link_supernode;
 
@@ -127,6 +155,41 @@ float calerror_bipartite(graph *g,int a,int b)
 		}
 		ptr=ptr->next;
 	}
+
+	g->arr[a].no_of_missing_edges=g->arr[b].no_of_missing_edges=count;
+	g->arr[a].correction=(struct edge **)malloc(sizeof(struct edge *)*count);
+	g->arr[b].correction=(struct edge **)malloc(sizeof(struct edge *)*count);
+
+	for(i=0;i<count;i++)
+	{
+		g->arr[a].correction[i]=(struct edge *)malloc(sizeof(struct edge));	
+		g->arr[b].correction[i]=(struct edge *)malloc(sizeof(struct edge));
+	}
+	
+	ptr=g->arr[a].link_supernode;
+	while(ptr!=NULL)
+	{
+		nptr=g->arr[b].link_supernode;
+		while(nptr!=NULL)
+		{
+			if(!isPresent(g->arr[ptr->vertex].head,nptr->vertex))
+			{
+				g->arr[a].correction[index]->source=ptr->vertex;
+				g->arr[a].correction[index]->dest=nptr->vertex;
+
+				
+				g->arr[b].correction[index]->source=ptr->vertex;
+				g->arr[b].correction[index]->dest=nptr->vertex;
+
+				index++;
+			}
+
+				
+			nptr=nptr->next;
+		}
+		ptr=ptr->next;
+	}
+		
 	return (float)count/(m*n);
 }
 bool bfscolor(struct node *group,graph *g,int source)
@@ -181,18 +244,9 @@ int form_bipartite(struct bucket *bin,graph *g,int group_no)
 	}
 		
 	 
-/*	ptr=group;
-	bool status=true;
-	while(ptr!=NULL && status==true)
-	{
-		if(g->arr[ptr->vertex].colour==UNCOLOURED)
-			status=bfscolor(group,g,ptr->vertex);
-
-		ptr=ptr->next;
-	}*/
-
 	ptr=group;
-	
+	 
+	 
 	
 	if(group!=NULL && bfscolor(group,g,group->vertex))
 	{
