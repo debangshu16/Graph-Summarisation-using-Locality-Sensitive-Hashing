@@ -3,7 +3,7 @@ void test(graph *g)
 {
 	int i;
 	struct node *tmpp;
-	int list[]={2597,2101,2002,2394,1994,2516};
+	int list[]={252,56,325,277,239,203};
 	for(i=0;i<(sizeof(list)/sizeof(list[0]));i++)
 	{
 		tmpp=g->arr[list[i]].head;

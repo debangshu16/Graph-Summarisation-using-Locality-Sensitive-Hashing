@@ -11,22 +11,24 @@ void form_superedge_zero_bin(struct bucket *bin,graph *g,int countg)
 				
 		j=i*11;
 		ptr=bin->arr[j].head;
-		form_supernodes(ptr,g);
-		lptr=g->arr[g->load].link_supernode;
-		while(lptr!=NULL)
+		if(form_supernodes(ptr,g)!=-1)
 		{
-			bptr=g->arr[lptr->vertex].head;
-			while(bptr!=NULL)
+			lptr=g->arr[g->load].link_supernode;
+			while(lptr!=NULL)
 			{
-				temp=cal_supernode_adjacency(bptr->vertex,g);
-				if(temp==getno(g->arr[g->load].link_supernode))
+				bptr=g->arr[lptr->vertex].head;
+				while(bptr!=NULL)
 				{
-					if(!isPresent(g->arr[g->load].head,bptr->vertex))			// && g->arr[bptr->vertex].has_superedge==0)
-						addedge(g,g->load,bptr->vertex);
+					temp=cal_supernode_adjacency(bptr->vertex,g);
+					if(temp==getno(g->arr[g->load].link_supernode))
+					{
+						if(!isPresent(g->arr[g->load].head,bptr->vertex))			// && g->arr[bptr->vertex].has_superedge==0)
+							addedge(g,g->load,bptr->vertex);
+					}
+					bptr=bptr->next;
 				}
-				bptr=bptr->next;
+				lptr=lptr->next;
 			}
-			lptr=lptr->next;
 		}
 		 
 		 
@@ -46,62 +48,66 @@ void form_superedge_last3(struct bucket *bin,graph* g,int countg)
 		ptr=merge(bin->arr[j].head,bin->arr[j-1].head);
 		ptr=merge(ptr,bin->arr[j-2].head);
 
-		form_supernodes(ptr,g);
-		if(!isPresent(g->arr[g->load].head,g->load))
-			addedge(g,g->load,g->load);
-
-		ptr=g->arr[g->load].link_supernode;
-		n=(float)getno(g->arr[g->load].link_supernode);
-
-		N=n*(n-1)/2.0;
-
-		while(ptr!=NULL)
+		if(form_supernodes(ptr,g)!= -1)
 		{
-			nptr=g->arr[g->load].link_supernode;
-			while(nptr!=NULL)
-			{
-				if(isPresent(g->arr[ptr->vertex].head,nptr->vertex))
-				m++;
-
-				nptr=nptr->next;
-			}
-			ptr=ptr->next;
-		}
-
-		M=m/2.0;
-		g->arr[g->load].error=(N-M)/N;
-		index=0;
-		g->arr[g->load].no_of_missing_edges=(N-M)*2;
-		ptr=g->arr[g->load].link_supernode;
-
-		g->arr[g->load].correction=(struct edge **)malloc(sizeof(struct edge *)*(N-M)*2);
 		
-		for(k=0;k<(N-M)*2;k++)
-		g->arr[g->load].correction[k]=(struct edge *)malloc(sizeof(struct edge));
+			if(!isPresent(g->arr[g->load].head,g->load))
+				addedge(g,g->load,g->load);
 
-		while(ptr!=NULL)
-		{
-			nptr=g->arr[g->load].link_supernode;
-			while(nptr!=NULL)
+			ptr=g->arr[g->load].link_supernode;
+			n=(float)getno(g->arr[g->load].link_supernode);
+
+			N=n*(n-1)/2.0;
+
+			while(ptr!=NULL)
 			{
-				if(!isPresent(g->arr[ptr->vertex].head,nptr->vertex) && ptr->vertex!=nptr->vertex)
+				//nptr=g->arr[g->load].link_supernode;
+				nptr=ptr;
+				while(nptr!=NULL)
 				{
-					g->arr[g->load].correction[index]->source=ptr->vertex;
-					g->arr[g->load].correction[index]->dest=nptr->vertex;
-					index++;
+					if(isPresent(g->arr[ptr->vertex].head,nptr->vertex))
+					m++;
+
+					nptr=nptr->next;
 				}
+				ptr=ptr->next;
+			}
+
+			M=m;
+			g->arr[g->load].error=(N-M)/N;
+			index=0;
+			g->arr[g->load].no_of_missing_edges=(N-M);
+			ptr=g->arr[g->load].link_supernode;
+
+			g->arr[g->load].correction=(struct edge **)malloc(sizeof(struct edge *)*(N-M));
+		
+			for(k=0;k<(N-M);k++)
+			g->arr[g->load].correction[k]=(struct edge *)malloc(sizeof(struct edge));
+
+			while(ptr!=NULL)
+			{
+				//nptr=g->arr[g->load].link_supernode;
+				nptr=ptr; 
+				while(nptr!=NULL)
+				{
+					if(!isPresent(g->arr[ptr->vertex].head,nptr->vertex) && ptr->vertex!=nptr->vertex)
+					{
+						g->arr[g->load].correction[index]->source=ptr->vertex;
+						g->arr[g->load].correction[index]->dest=nptr->vertex;
+						index++;
+					}
 				
 
-				nptr=nptr->next;
+					nptr=nptr->next;
+				}
+				ptr=ptr->next;
 			}
-			ptr=ptr->next;
+			m=0;
+			n=0;
 		}
-		m=0;
-		n=0;
-		
 	}
 }
-void form_supernodes(struct node *head,graph *g)
+int form_supernodes(struct node *head,graph *g)
 {
 	struct node *ptr=head;
 	int cnt=0;
@@ -129,9 +135,9 @@ void form_supernodes(struct node *head,graph *g)
 		g->arr[g->load].link_supernode=q->link;
 		no_of_supernodes++;
 	}
-
-	q->link=NULL;
-	
+	else 
+	return -1;
+ 	
 
 }
 float calerror_bipartite(graph *g,int a,int b)

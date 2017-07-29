@@ -152,7 +152,7 @@ int main(int argc,char* argv[])
 		 	 
 	}
 	
-	int choice=atoi(argv[4]);
+	/*int choice=atoi(argv[4]);
 	if(choice==1)
 		test(g);
 	else
@@ -198,11 +198,31 @@ int main(int argc,char* argv[])
 
 		 
 	 
-		//print(g); 
+		 
 
 	}
 
-	 
+	*/
+
+	int countcomp=0;
+	for(i=0;i<g->v;i++)
+	{
+		if(g->arr[i].comp_score==1)
+		countcomp+=g->arr[i].degree;
+		else
+		{
+			ptr=g->arr[i].head;
+			while(ptr!=NULL)
+			{
+				if(g->arr[ptr->vertex].flag==1)
+				countcomp++;
+				ptr=ptr->next;
+			}
+		}
+	}
+
+	printf("%d out of %d edges compressed\n",(countcomp/2),e);
+			 
 	   
 	 
 }

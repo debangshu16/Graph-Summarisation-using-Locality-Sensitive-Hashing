@@ -49,22 +49,22 @@ void addedge(graph *g,int src,int dest)
 void print(graph *g)
 {
 	int i;
+	struct node *ptr;
+	printf("\n");
 	for(i=0;i<=g->load;i++)
 	{
-		struct node *ptr=g->arr[i].head;
-		
-		if(g->arr[i].has_superedge==1)
-		{
-
-			printf("%d\t  ",g->arr[i].id);
+		ptr=g->arr[i].head;
+		//if(g->arr[i].has_superedge==1)
+		//{
+			printf("%d-> ",g->arr[i].id);
 			while(ptr!=NULL)
 			{
 				printf("%d,",ptr->vertex);
 				ptr=ptr->next;
 			}
 			//printf("%d",g->arr[i].degree);
-			printf("\n\n");
-		}
+			printf("\n");
+		//}
 	}
 }
 struct node* addlink(struct node *head,int key)

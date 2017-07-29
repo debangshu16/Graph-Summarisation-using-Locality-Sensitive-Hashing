@@ -134,7 +134,7 @@ struct adjmat* create_adjmat(struct bin *,graph *,int[],int);
 int getno(struct node *);
 int isPresent(struct node *,int);
 void form_superedge_zero_bin(struct bucket*,graph*,int);
-void form_supernodes(struct node*,graph *);
+int form_supernodes(struct node*,graph *);
 void form_superedge_last3(struct bucket *,graph *,int);
 float calerror_bipartite(graph *,int,int);
 int cal_supernode_adjacency(int vertex,graph *g);
@@ -145,6 +145,6 @@ struct node *deque(struct que *q);
 bool isempty(struct que *q);
 void push(struct node** head_ref, int new_data);
 void test(graph *g);
-
+void print(graph *g);
  
 
