@@ -2,7 +2,7 @@
 #include <stdlib.h>
 int main()
 {
-	int i,nh=30;
+	int i,nh=20;
 	srand(time(NULL));
 	for(i=0;i<nh;i++)
 	{

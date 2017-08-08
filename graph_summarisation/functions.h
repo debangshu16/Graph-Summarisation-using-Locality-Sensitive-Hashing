@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <malloc.h>
 #include <math.h>
+#include <string.h>
+ 
 #include <time.h>
 #define RED 1
 #define BLUE 0
@@ -54,6 +56,7 @@ struct adjlist
 
 	int is_supernode;
 	struct node *link_supernode;
+	int no_of_members;
 	int has_superedge;
 	struct edge_correction *edges;
 	int no_of_missing_edges;
@@ -106,6 +109,7 @@ struct bucket
 {
 	struct bucketlist *arr;
 	int size;
+	int no_of_groups;
 };
 
 struct inter
@@ -114,22 +118,23 @@ struct inter
 	int size;
 };
 
-
+void printList(struct node *);
 graph* creategraph(int v);
 int posn(int *elements,int n,int key);
 int h(int,int,int);
 struct node* newnode1(int);
 void scoring_nodes(graph *g);
-int form_bipartite(struct bucket *bin,graph *g,int group_no);
+int form_bipartite(struct bucket *,graph *g,int);
 void addedge(graph *,int,int);
 struct node *merge(struct node *,struct node *);
+void push(struct node **,int);
 struct inter *intersection(struct inter*,int *,int,int);
-double jsv(struct node *,struct node *);
+double jsv(struct node *,struct node *); 
 void quickSort(int a[],int,int); 
 int maxn(int,int);
 struct node *getIntersection(struct node *,struct node *);
 int search(int a[],int,int,int);
-void lsh(int **,int *,int,graph *,int);
+struct bucket* lsh(int **,int *,int,graph *,int);
 struct adjmat* create_adjmat(struct bin *,graph *,int[],int);
 int getno(struct node *);
 int isPresent(struct node *,int);
@@ -143,8 +148,11 @@ struct que * createque();
 void enque(struct que *q,int k);
 struct node *deque(struct que *q);
 bool isempty(struct que *q);
-void push(struct node** head_ref, int new_data);
+int isPresentInSortedList(struct node *,int); 
 void test(graph *g);
 void print(graph *g);
- 
+bool isListSorted(struct node *);
+struct node * pushToLast(struct node *,int,struct node **);
+void reverse(struct node **);
+void nodesCompressed(struct node *,graph *);
 

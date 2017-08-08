@@ -20,7 +20,7 @@ void form_superedge_zero_bin(struct bucket *bin,graph *g,int countg)
 				while(bptr!=NULL)
 				{
 					temp=cal_supernode_adjacency(bptr->vertex,g);
-					if(temp==getno(g->arr[g->load].link_supernode))
+					if(temp==g->arr[g->load].no_of_members)
 					{
 						if(!isPresent(g->arr[g->load].head,bptr->vertex))			// && g->arr[bptr->vertex].has_superedge==0)
 							addedge(g,g->load,bptr->vertex);
@@ -29,14 +29,26 @@ void form_superedge_zero_bin(struct bucket *bin,graph *g,int countg)
 				}
 				lptr=lptr->next;
 			}
+
+			reverse(&g->arr[g->load].head);
+			nodesCompressed(g->arr[g->load].link_supernode,g);
+			
 		}
+		/*else
+		{
+			while(ptr!=NULL)
+			{
+				g->arr[ptr->vertex].flag-=1;
+				ptr=ptr->next;
+			}
+		}*/
 		 
 		 
 	}
 }
 void form_superedge_last3(struct bucket *bin,graph* g,int countg)
 {
-	struct node *ptr,*nptr;
+	struct node *ptr,*nptr,*group;
 	int i,j,k;
 	float m=0,n=0;
 	float M,N;
@@ -47,15 +59,15 @@ void form_superedge_last3(struct bucket *bin,graph* g,int countg)
 		j=(i*11)+10;
 		ptr=merge(bin->arr[j].head,bin->arr[j-1].head);
 		ptr=merge(ptr,bin->arr[j-2].head);
-
+		group=ptr;
 		if(form_supernodes(ptr,g)!= -1)
 		{
 		
-			if(!isPresent(g->arr[g->load].head,g->load))
+			if(!isPresentInSortedList(g->arr[g->load].head,g->load))
 				addedge(g,g->load,g->load);
 
 			ptr=g->arr[g->load].link_supernode;
-			n=(float)getno(g->arr[g->load].link_supernode);
+			n=(float)g->arr[g->load].no_of_members;
 
 			N=n*(n-1)/2.0;
 
@@ -65,7 +77,7 @@ void form_superedge_last3(struct bucket *bin,graph* g,int countg)
 				nptr=ptr;
 				while(nptr!=NULL)
 				{
-					if(isPresent(g->arr[ptr->vertex].head,nptr->vertex))
+					if(isPresentInSortedList(g->arr[ptr->vertex].head,nptr->vertex))
 					m++;
 
 					nptr=nptr->next;
@@ -90,7 +102,7 @@ void form_superedge_last3(struct bucket *bin,graph* g,int countg)
 				nptr=ptr; 
 				while(nptr!=NULL)
 				{
-					if(!isPresent(g->arr[ptr->vertex].head,nptr->vertex) && ptr->vertex!=nptr->vertex)
+					if(!isPresentInSortedList(g->arr[ptr->vertex].head,nptr->vertex) && ptr->vertex!=nptr->vertex)
 					{
 						g->arr[g->load].correction[index]->source=ptr->vertex;
 						g->arr[g->load].correction[index]->dest=nptr->vertex;
@@ -104,7 +116,18 @@ void form_superedge_last3(struct bucket *bin,graph* g,int countg)
 			}
 			m=0;
 			n=0;
+			nodesCompressed(g->arr[g->load].link_supernode,g);
 		}
+		/*else
+		{
+			ptr=group;
+			while(ptr!=NULL)
+			{
+				g->arr[ptr->vertex].flag-=1;
+				ptr=ptr->next;
+			}
+		}*/
+		
 	}
 }
 int form_supernodes(struct node *head,graph *g)
@@ -121,7 +144,8 @@ int form_supernodes(struct node *head,graph *g)
 		 
 		ptr=ptr->next;
 	}
-	if(cnt>1)
+	 
+	if(cnt>2)
 	{
 		if(g->load==g->size-1)
 		{
@@ -133,6 +157,7 @@ int form_supernodes(struct node *head,graph *g)
 		g->arr[g->load].is_supernode=1;
 		g->arr[g->load].comp_score=0.0;
 		g->arr[g->load].link_supernode=q->link;
+		g->arr[g->load].no_of_members=cnt;
 		no_of_supernodes++;
 	}
 	else 
@@ -147,15 +172,15 @@ float calerror_bipartite(graph *g,int a,int b)
 	struct node *ptr=g->arr[a].link_supernode;
 	struct node *nptr=g->arr[b].link_supernode;
 
-	int m=getno(ptr);
-	int n=getno(nptr);
+	int m=g->arr[a].no_of_members;
+	int n=g->arr[b].no_of_members;
 	
 	while(ptr!=NULL)
 	{
 		nptr=g->arr[b].link_supernode;
 		while(nptr!=NULL)
 		{
-			if(!isPresent(g->arr[ptr->vertex].head,nptr->vertex))
+			if(!isPresentInSortedList(g->arr[ptr->vertex].head,nptr->vertex))
 				count++;
 			nptr=nptr->next;
 		}
@@ -178,7 +203,7 @@ float calerror_bipartite(graph *g,int a,int b)
 		nptr=g->arr[b].link_supernode;
 		while(nptr!=NULL)
 		{
-			if(!isPresent(g->arr[ptr->vertex].head,nptr->vertex))
+			if(!isPresentInSortedList(g->arr[ptr->vertex].head,nptr->vertex))
 			{
 				g->arr[a].correction[index]->source=ptr->vertex;
 				g->arr[a].correction[index]->dest=nptr->vertex;
@@ -213,7 +238,7 @@ bool bfscolor(struct node *group,graph *g,int source)
 		while(nptr!=NULL)
 		{
 			
-			if(isPresent(group,nptr->vertex))
+			if(isPresentInSortedList(group,nptr->vertex))
 			{
 				if(g->arr[nptr->vertex].colour == UNCOLOURED)
 				{
@@ -237,6 +262,7 @@ bool bfscolor(struct node *group,graph *g,int source)
 int form_bipartite(struct bucket *bin,graph *g,int group_no)
 {
 	int i=group_no,j;
+	bool status=true;
 	
 	struct node *ptr,*group=NULL,*nptr;
 	struct node *snode1=NULL,*snode2=NULL;
@@ -268,6 +294,8 @@ int form_bipartite(struct bucket *bin,graph *g,int group_no)
 			ptr=ptr->next;
 		}
 	
+		 
+	
 		struct link *q=(struct link *)malloc(sizeof(struct link));
 		struct link *q2=(struct link *)malloc(sizeof(struct link));
 		q->link=NULL;
@@ -285,6 +313,7 @@ int form_bipartite(struct bucket *bin,graph *g,int group_no)
 			
 			ptr=ptr->next;
 		}
+
 		if(cnt>1)
 		{
 		
@@ -298,10 +327,17 @@ int form_bipartite(struct bucket *bin,graph *g,int group_no)
 			g->arr[g->load].is_supernode=1;
 			g->arr[g->load].comp_score=0.0;
 			g->arr[g->load].link_supernode=q->link;
+			g->arr[g->load].no_of_members=cnt;
 			no_of_supernodes++;
+			nodesCompressed(g->arr[g->load].link_supernode,g);
 		
 		}
-
+		else
+		{
+			//if(snode1!=NULL)
+			//g->arr[snode1->vertex].flag-=1;
+			status=false;
+		}
 		 
 
 		cnt=0;
@@ -327,16 +363,46 @@ int form_bipartite(struct bucket *bin,graph *g,int group_no)
 			g->arr[g->load].is_supernode=1;
 			g->arr[g->load].comp_score=0.0;
 			g->arr[g->load].link_supernode=q2->link;
+			g->arr[g->load].no_of_members=cnt;
 			no_of_supernodes++;
+			nodesCompressed(g->arr[g->load].link_supernode,g);
 		}
+		else 
+		{
+			//if(snode2!=NULL)
+			//g->arr[snode2->vertex].flag-=1;
+			status=false;
+		}
+
+
+		/*ptr=group;
+		while(ptr!=NULL)
+		{
+			if(g->arr[ptr->vertex].colour==UNCOLOURED)
+			g->arr[ptr->vertex].flag--;
+			ptr=ptr->next;
+		}*/
 
 		 
 	
-		if(getno(q->link)<=1 || getno(q2->link)<=1)
-		return -1;
+		//if(getno(q->link)<=1 || getno(q2->link)<=1)
+		//return -1;
 
 	}
 	else
+	{
+		/*if(group!=NULL)
+		{
+			ptr=group;
+			while(ptr!=NULL)
+			{
+				g->arr[ptr->vertex].flag--;
+				ptr=ptr->next;
+			}
+		}*/
+		status=false;
+	}
+	if(!status)
 	return -1;
 	
 }
@@ -346,7 +412,7 @@ int cal_supernode_adjacency(int vertex,graph *g)
 	struct node *ptr=g->arr[g->load].link_supernode;
 	while(ptr!=NULL)
 	{
-		if(isPresent(g->arr[ptr->vertex].head,vertex))
+		if(isPresentInSortedList(g->arr[ptr->vertex].head,vertex))
 		count++;
 		ptr=ptr->next;
 	}

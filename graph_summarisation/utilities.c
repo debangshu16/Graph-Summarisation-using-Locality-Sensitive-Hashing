@@ -128,7 +128,7 @@ void js(double **mat,int *elem,int n,graph *g)
 		printf("\n");
 	}
 }					
-struct node * merge(struct node *head1,struct node *head2)
+/*struct node * merge2(struct node *head1,struct node *head2)
 {
 	struct node *result = NULL;
 	struct node *t1 = head1, *t2 = head2;
@@ -150,6 +150,16 @@ struct node * merge(struct node *head1,struct node *head2)
  
         //head1=result;
 	return result;
+}*/
+void printList(struct node *ptr)
+{
+	printf("\n");
+	while(ptr!=NULL)
+	{
+		printf("%d,",ptr->vertex);
+		ptr=ptr->next;
+	}
+	printf("\n");
 }
 void push(struct node** head_ref, int new_data)
 {
@@ -170,7 +180,18 @@ void push(struct node** head_ref, int new_data)
 int isPresent(struct node *head, int data)
 {
     struct node *t = head;
-    while (t != NULL)
+    while (t != NULL) 
+    {
+        if (t->vertex == data)
+            return 1;
+        t = t->next;
+    }
+    return 0;
+}
+int isPresentInSortedList(struct node *head, int data)
+{
+    struct node *t = head;
+    while (t != NULL && data <=t->vertex)
     {
         if (t->vertex == data)
             return 1;
@@ -179,7 +200,7 @@ int isPresent(struct node *head, int data)
     return 0;
 }
  
-struct node *getIntersection(struct node *head1, 
+/*struct node *getIntersection(struct node *head1, 
                               struct node *head2)
 {
     struct node *result = NULL;
@@ -194,7 +215,8 @@ struct node *getIntersection(struct node *head1,
     }
  
     return result;
-}
+}*/
+
 int getno(struct node *head)
 {
 	int cnt=0;
@@ -242,17 +264,20 @@ struct adjmat * create_adjmat(struct bin *bin,graph *g,int visited[],int k)
 		ptr=bin->a[k].head;
 		while(ptr!=NULL)
 		{
-			if(visited[ptr->vertex]==0 &&g->arr[ptr->vertex].comp_score!=1)
+			if(visited[ptr->vertex]==0 && g->arr[ptr->vertex].comp_score!=1)
 			{
 				visited[ptr->vertex]=1;
 				n1++;
 				nptr=g->arr[ptr->vertex].head;
 				while(nptr!=NULL)
 				{
-					if(!visited[nptr->vertex] && g->arr[nptr->vertex].comp_score!=1)
+					if(nptr->vertex<g->v)
 					{
-						n1++;
-						visited[nptr->vertex]=1;
+						if(!visited[nptr->vertex] && g->arr[nptr->vertex].comp_score!=1)
+						{
+							n1++;
+							visited[nptr->vertex]=1;
+						}
 					}
 					nptr=nptr->next;
 				}
@@ -358,9 +383,133 @@ struct inter *intersection(struct inter *mat,int *a,int pos,int n1)
 
 	return mat;
 }
-		
-		 
-		
+ 
+
+ 
+bool isListSorted(struct node *head)
+{
+	struct node *ptr=head;
+	while(ptr->next!=NULL)
+	{
+		if(ptr->vertex < ptr->next->vertex)
+			return false;
+
+		ptr=ptr->next;
+	}
+
+	return true;
+}
+struct node* getIntersection(struct node* a, struct node* b)
+{
+  struct node* result = NULL;
+  struct node** lastPtrRef = &result;
+  
+  /* Advance comparing the first nodes in both lists.
+    When one or the other list runs out, we're done. */
+  while (a!=NULL && b!=NULL)
+  {
+    if (a->vertex == b->vertex)
+    {
+      /* found a node for the intersection */
+      push(lastPtrRef, a->vertex);
+      lastPtrRef = &((*lastPtrRef)->next);
+      a = a->next;
+      b = b->next;
+    }
+    else if (a->vertex > b->vertex)
+      a=a->next;       /* advance the smaller list */   
+    else   
+      b=b->next;    
+  }
+  return(result);
+}
+
+struct node *merge(struct node *n1,struct node *n2)
+{
+	
+	struct node *res=NULL;
+	struct node *tail=NULL;
+	if(n1==NULL)
+	res=n2;
+	else if(n2==NULL)
+	res= n1;
+	else
+	{
+		while(n1!=NULL && n2!=NULL)
+		{
+			if(n1->vertex > n2->vertex)
+			{
+				res=pushToLast(res,n1->vertex,&tail);
+				n1=n1->next;
+			}
+			else if(n1->vertex <n2->vertex)
+			{
+				res=pushToLast(res,n2->vertex,&tail);
+				n2=n2->next;
+			}
+			else
+			{
+				res=pushToLast(res,n1->vertex,&tail);
+				n1=n1->next;
+				n2=n2->next;
+			}
+		}
+		while(n1!=NULL)
+		{
+			res=pushToLast(res,n1->vertex,&tail);
+			n1=n1->next;
+		}
+		while(n2!=NULL)
+		{
+			res=pushToLast(res,n2->vertex,&tail);
+			n2=n2->next;
+		}
+	}
+	return res;
+	
+}
+struct node* pushToLast(struct node *head,int data,struct node **tail)
+{
+	struct node *newnode=(struct node *)malloc(sizeof(struct node));
+	newnode->vertex=data;
+	newnode->next=NULL;
+	if(head==NULL)
+	{
+		*tail=newnode;
+		head=newnode;
+	}
+	else
+	{
+		(*tail)->next=newnode;
+		*tail=newnode;
+	}
+	return head;
+}
+void reverse(struct node** head_ref)
+{
+    struct node* prev   = NULL;
+    struct node* current = *head_ref;
+    struct node* next;
+    while (current != NULL)
+    {
+        next  = current->next;  
+        current->next = prev;   
+        prev = current;
+        current = next;
+    }
+    *head_ref = prev;
+}
+void nodesCompressed(struct node *head,graph *g)
+{
+	while(head!=NULL)
+	{
+		g->arr[head->vertex].flag+=1;
+		head=head->next;
+	}
+}
+
+
+ 
 	
 
  
