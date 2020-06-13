@@ -1,1 +1,2 @@
-# graph_proj
+# Graph Summarisation using Locality Sensitive Hashing
+This project aims to summarise a given graph with as little information loss as possible. A given graph is grouped into buckets based on the logarithm of the degree of vertices. The subgraphs containing the vertices in each bucket are passed through a Locality Sensitive Hashing Algorithm to group the vertices into bins. A further scoring procedure is implemented on each bin based on the number of neighbours in the bin for a vertex divided by the degree of the vertex. This scoring is used to group the bins into stars/bi-partites or cliques. The information loss is then found for this compressing process. 
